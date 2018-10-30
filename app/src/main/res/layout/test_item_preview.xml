@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:ezviz="http://schemas.android.com/apk/res-auto"
+    android:orientation="vertical"
+    android:layout_gravity="center"
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content">
+
+    <com.easygo.monitor.view.widget.ImageViewFixedRatio
+        android:id="@+id/camera_cover_img"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:foreground="?attr/selectableItemBackground"
+        android:scaleType="centerCrop"
+        ezviz:ratio="0.562"/>
+
+    <TextView
+        android:id="@+id/camera_title"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textColor="@color/color_white"
+        android:textSize="19sp"/>
+
+
+    <RelativeLayout
+        android:id="@+id/offline_layout"
+        android:layout_width="wrap_content"
+        android:visibility="gone"
+        android:layout_height="wrap_content">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_centerInParent="true"
+            android:textSize="26.4sp"
+            android:textColor="@color/color_white"
+            android:text="@string/offline"
+            android:layout_height="wrap_content"/>
+    </RelativeLayout>
+
+
+    <TextView
+        android:id="@+id/text_loading"
+        android:layout_width="wrap_content"
+        android:text="@string/refreshing_camera_cover"
+        android:layout_centerInParent="true"
+        android:visibility="gone"
+        android:textColor="@color/color_white"
+        android:textSize="12sp"
+        android:layout_height="wrap_content"/>
+
+
+</RelativeLayout>
