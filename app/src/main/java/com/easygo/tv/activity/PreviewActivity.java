@@ -34,6 +34,10 @@ public class PreviewActivity extends AppCompatActivity {
         initView();
 
 
+        //根据mac地址获取 需要显示的摄像头预览画面
+
+
+
 
     }
 

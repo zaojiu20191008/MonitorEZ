@@ -1,4 +1,4 @@
-package com.easygo.monitor.view.fragment;
+package com.easygo.tv.fragment;
 
 import android.app.Activity;
 import android.os.Bundle;
@@ -34,9 +34,9 @@ import java.lang.ref.WeakReference;
 import java.util.Calendar;
 import java.util.concurrent.atomic.AtomicBoolean;
 
-public class TestFragment extends Fragment implements SurfaceHolder.Callback, PlayView {
+public class EZPlayerFragment extends Fragment implements SurfaceHolder.Callback, PlayView {
 
-    private static final String TAG = "TestFragment";
+    private static final String TAG = "EZPlayerFragment";
 
     private View mMainView;
 
@@ -150,10 +150,10 @@ public class TestFragment extends Fragment implements SurfaceHolder.Callback, Pl
         Bundle bundle = getArguments();
         mDeviceSerial = bundle.getString(EZOpenConstant.EXTRA_DEVICE_SERIAL);
         mCameraNo = bundle.getInt(EZOpenConstant.EXTRA_CAMERA_NO, -1);
-        mCameraName = bundle.getString("DEVICE_NAME");
+        mCameraName = bundle.getString(EZOpenConstant.EXTRA_CAMERA_NAME);
 
         //设置名字
-//        mNameTextView.setText(mCameraName);
+        mNameTextView.setText(mCameraName);
 
         mEZPlayer = EZPlayer.createPlayer(mDeviceSerial, mCameraNo);
 
@@ -209,12 +209,12 @@ public class TestFragment extends Fragment implements SurfaceHolder.Callback, Pl
         mHandler.sendEmptyMessage(MSG_REFRESH_PLAY_UI);
 
         //todo test
-        mHandler.postDelayed(new Runnable() {
-            @Override
-            public void run() {
-                startRecord();
-            }
-        }, 2000);
+//        mHandler.postDelayed(new Runnable() {
+//            @Override
+//            public void run() {
+//                startRecord();
+//            }
+//        }, 2000);
     }
     /**
      * 处理播放失败的情况
@@ -341,6 +341,16 @@ public class TestFragment extends Fragment implements SurfaceHolder.Callback, Pl
         }
     }
 
+    public void release() {
+        stopRecord();
+        stopRealPlay();
+
+        mHandler.removeCallbacksAndMessages(null);
+        if (mEZPlayer != null) {
+            mEZPlayer.release();
+        }
+    }
+
 
 
     @Override
@@ -422,7 +432,7 @@ public class TestFragment extends Fragment implements SurfaceHolder.Callback, Pl
     /**
      * 停止播放
      */
-    private void stopRealPlay() {
+    public void stopRealPlay() {
         EZLog.d(TAG, "stopRealPlay");
         if (mEZPlayer != null) {
             mEZPlayer.stopRealPlay();
@@ -538,7 +548,7 @@ public class TestFragment extends Fragment implements SurfaceHolder.Callback, Pl
 //                return;
 //            }
             //横屏
-            mEZUIPlayerView.setSurfaceSize(dm.widthPixels/3, 0);
+            mEZUIPlayerView.setSurfaceSize(dm.widthPixels/4, 0);
 //            mEZUIPlayerView.setSurfaceSize(dm.widthPixels, dm.heightPixels);
 //            mOverlayTopBar.setVisibility(View.VISIBLE);
 //            showOverlayBar(true);
@@ -562,7 +572,7 @@ public class TestFragment extends Fragment implements SurfaceHolder.Callback, Pl
     /**
      * 开启录像到手机
      */
-    private void startRecord() {
+    public void startRecord() {
         EZLog.debugLog(TAG, "startRecord");
         if (mEZPlayer == null) {
             Log.d(TAG, "EZPlaer is null");
@@ -640,7 +650,7 @@ public class TestFragment extends Fragment implements SurfaceHolder.Callback, Pl
     /**
      * 停止录像
      */
-    private void stopRecord() {
+    public void stopRecord() {
         EZLog.d(TAG, "stopRecord");
         if (mEZPlayer == null || !mIsRecording) {
             return;

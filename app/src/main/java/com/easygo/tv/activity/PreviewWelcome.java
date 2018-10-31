@@ -9,9 +9,12 @@ import com.easygo.monitor.test.Constant;
 import com.easygo.monitor.utils.EZLog;
 import com.easygo.monitor.view.DeviceView;
 import com.easygo.monitor.view.avctivity.RootActivity;
+import com.easygo.tv.module.login.LoginPresenter;
+import com.easygo.tv.module.login.LoginContract;
+import com.easygo.tv.mvp.model.LoginModel;
 import com.videogo.openapi.EZOpenSDK;
 
-public class PreviewWelcome extends RootActivity implements DeviceView {
+public class PreviewWelcome extends RootActivity implements DeviceView, LoginContract.ILoginView {
 
     private static final String TAG = "PreviewWelcome";
     private DevicePresenter mDevicePresenter;
@@ -23,15 +26,19 @@ public class PreviewWelcome extends RootActivity implements DeviceView {
         setContentView(R.layout.activity_welcome);
         EZLog.i(TAG,"Welcome");
 
+        LoginPresenter loginPresenter = new LoginPresenter();
+        loginPresenter.attach(new LoginModel(), this);
+        loginPresenter.login();
+
+
 
         //todo  test
 
-        EZOpenSDK.setAccessToken(Constant.TOKEN);
-
-
-        mDevicePresenter = new DevicePresenter(this);
-
-        mDevicePresenter.loadDeviceList();
+//        EZOpenSDK.setAccessToken(Constant.TOKEN);
+//
+//        mDevicePresenter = new DevicePresenter(this);
+//
+//        mDevicePresenter.loadDeviceList();
 
     }
 
@@ -49,4 +56,30 @@ public class PreviewWelcome extends RootActivity implements DeviceView {
     public void refreshFinish() {
 
     }
+
+    @Override
+    public void loginSucces() {
+        EZOpenSDK.setAccessToken(Constant.TOKEN);
+
+        mDevicePresenter = new DevicePresenter(this);
+
+        mDevicePresenter.loadDeviceList();
+
+    }
+
+    @Override
+    public void loginFailed() {
+
+    }
+
+    @Override
+    public void serialsSuccess() {
+
+    }
+
+    @Override
+    public void serialsfailed() {
+
+    }
+
 }

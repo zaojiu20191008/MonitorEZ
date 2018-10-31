@@ -26,6 +26,7 @@ public class CMQ {
     public static final String RECEIVER_OPEN_DOOR = "RECEIVER_OPEN_DOOR";
     public static final String RECEIVER_RECORD = "RECEIVER_RECORD";
 
+    private boolean repeatAccept = true;
 
 
     private CMQ() {
@@ -53,6 +54,14 @@ public class CMQ {
         static CMQ sInstance = new CMQ();
     }
 
+    public void stop() {
+        this.repeatAccept = false;
+    }
+
+    public void reset() {
+        this.repeatAccept = true;
+    }
+
     public interface OnMessageListener {
         void onAccept(String msg);
     }
@@ -70,7 +79,7 @@ public class CMQ {
             for (int i = 0; i < msgList.size(); i++) {
                 Message msg = msgList.get(i);
 //            System.out.println("msgId:" + msg.msgId);
-//            System.out.println("msgBody:" + msg.msgBody);
+            System.out.println("msgBody:" + msg.msgBody);
 //            System.out.println("receiptHandle:" + msg.receiptHandle);
 //            System.out.println("enqueueTime:" + msg.enqueueTime);
 //            System.out.println("nextVisibleTime:" + msg.nextVisibleTime);
@@ -87,16 +96,20 @@ public class CMQ {
             Log.i(TAG, "accept: 删除消息中");
             queue.batchDeleteMessage(vtReceiptHandle);
 
-
+            if(repeatAccept)
+                accept(listener);
         }catch (CMQServerException e1) {
             Log.i(TAG, "Server Exception, " + e1.toString());
-            accept(listener);
+            if(repeatAccept)
+                accept(listener);
         } catch (CMQClientException e2) {
             Log.i(TAG, "Client Exception, " + e2.toString());
-            accept(listener);
+            if(repeatAccept)
+                accept(listener);
         } catch (Exception e) {
             Log.i(TAG, "error..." + e.toString());
-            accept(listener);
+            if(repeatAccept)
+                accept(listener);
         }
 
     }
@@ -166,16 +179,16 @@ public class CMQ {
             System.out.println("pollingWaitSeconds=20 set");
 
             //获取队列属性
-            System.out.println("---------------get queue attributes ...---------------");
-            QueueMeta meta2 = queue.getQueueAttributes();
-            System.out.println("maxMsgHeapNum:" + meta2.maxMsgHeapNum);
-            System.out.println("pollingWaitSeconds:" + meta2.pollingWaitSeconds);
-            System.out.println("visibilityTimeout:" + meta2.visibilityTimeout);
-            System.out.println("maxMsgSize:" + meta2.maxMsgSize);
-            System.out.println("createTime:" + meta2.createTime);
-            System.out.println("lastModifyTime:" + meta2.lastModifyTime);
-            System.out.println("activeMsgNum:" + meta2.activeMsgNum);
-            System.out.println("inactiveMsgNum:" + meta2.inactiveMsgNum);
+//            System.out.println("---------------get queue attributes ...---------------");
+//            QueueMeta meta2 = queue.getQueueAttributes();
+//            System.out.println("maxMsgHeapNum:" + meta2.maxMsgHeapNum);
+//            System.out.println("pollingWaitSeconds:" + meta2.pollingWaitSeconds);
+//            System.out.println("visibilityTimeout:" + meta2.visibilityTimeout);
+//            System.out.println("maxMsgSize:" + meta2.maxMsgSize);
+//            System.out.println("createTime:" + meta2.createTime);
+//            System.out.println("lastModifyTime:" + meta2.lastModifyTime);
+//            System.out.println("activeMsgNum:" + meta2.activeMsgNum);
+//            System.out.println("inactiveMsgNum:" + meta2.inactiveMsgNum);
 
             //发送消息
 //                        System.out.println("---------------send message ...---------------");
@@ -201,42 +214,60 @@ public class CMQ {
 
             //批量操作
             //批量发送消息
-//            System.out.println("---------------batch send message ...---------------");
-//            ArrayList<String> vtMsgBody = new ArrayList<String>();
-//            String msgBody = "hello world,this is cmq sdk for java 1";
+            System.out.println("---------------batch send message ...---------------");
+            ArrayList<String> vtMsgBody = new ArrayList<String>();
+            String msgBody = "hello world,this is cmq sdk for java 1";
 //            vtMsgBody.add(msgBody);
 //            msgBody = "hello world,this is cmq sdk for java 2";
 //            vtMsgBody.add(msgBody);
 //            msgBody = "hello world,this is cmq sdk for java 3";
 //            vtMsgBody.add(msgBody);
-//            <String> vtMsgId = queue.batchSenListdMessage(vtMsgBody);
+//            msgBody = "stop";
+
+//            msgBody = "add_182365469";
+//            msgBody = "remove_182365469";
+//            vtMsgBody.add(msgBody);
+
+//            msgBody = "add_182364991";
+//            msgBody = "remove_182364991";
+//            vtMsgBody.add(msgBody);
+
+//            msgBody = "add_182365528";
+            msgBody = "remove_182365528";
+            vtMsgBody.add(msgBody);
+
+
+            //182365469
+            //182364991
+            //182365528
+            List<String> vtMsgId = queue.batchSendMessage(vtMsgBody);
 //            for (int i = 0; i < vtMsgBody.size(); i++)
 //                System.out.println("[" + vtMsgBody.get(i) + "] sent");
 //            for (int i = 0; i < vtMsgId.size(); i++)
 //                System.out.println("msgId:" + vtMsgId.get(i));
 
             //批量接收消息
-            ArrayList<String> vtReceiptHandle = new ArrayList<String>(); //保存服务器返回的消息句柄，用于删除消息
-            System.out.println("---------------batch recv message ...---------------");
-            List<Message> msgList = queue.batchReceiveMessage(10, 10);
-            System.out.println("recv msg count:" + msgList.size());
-            for (int i = 0; i < msgList.size(); i++) {
-                Message msg1 = msgList.get(i);
-                System.out.println("msgId:" + msg1.msgId);
-                System.out.println("msgBody:" + msg1.msgBody);
-                System.out.println("receiptHandle:" + msg1.receiptHandle);
-                System.out.println("enqueueTime:" + msg1.enqueueTime);
-                System.out.println("nextVisibleTime:" + msg1.nextVisibleTime);
-                System.out.println("firstDequeueTime:" + msg1.firstDequeueTime);
-                System.out.println("dequeueCount:" + msg1.dequeueCount);
-
-                vtReceiptHandle.add(msg1.receiptHandle);
-            }
-            //批量删除消息
-            System.out.println("---------------batch delete message ...---------------");
-            queue.batchDeleteMessage(vtReceiptHandle);
-            for (int i = 0; i < vtReceiptHandle.size(); i++)
-                System.out.println("receiptHandle:" + vtReceiptHandle.get(i) + " deleted");
+//            ArrayList<String> vtReceiptHandle = new ArrayList<String>(); //保存服务器返回的消息句柄，用于删除消息
+//            System.out.println("---------------batch recv message ...---------------");
+//            List<Message> msgList = queue.batchReceiveMessage(10, 10);
+//            System.out.println("recv msg count:" + msgList.size());
+//            for (int i = 0; i < msgList.size(); i++) {
+//                Message msg1 = msgList.get(i);
+//                System.out.println("msgId:" + msg1.msgId);
+//                System.out.println("msgBody:" + msg1.msgBody);
+//                System.out.println("receiptHandle:" + msg1.receiptHandle);
+//                System.out.println("enqueueTime:" + msg1.enqueueTime);
+//                System.out.println("nextVisibleTime:" + msg1.nextVisibleTime);
+//                System.out.println("firstDequeueTime:" + msg1.firstDequeueTime);
+//                System.out.println("dequeueCount:" + msg1.dequeueCount);
+//
+//                vtReceiptHandle.add(msg1.receiptHandle);
+//            }
+//            //批量删除消息
+//            System.out.println("---------------batch delete message ...---------------");
+//            queue.batchDeleteMessage(vtReceiptHandle);
+//            for (int i = 0; i < vtReceiptHandle.size(); i++)
+//                System.out.println("receiptHandle:" + vtReceiptHandle.get(i) + " deleted");
 
         } catch (CMQServerException e1) {
             System.out.println("Server Exception, " + e1.toString());

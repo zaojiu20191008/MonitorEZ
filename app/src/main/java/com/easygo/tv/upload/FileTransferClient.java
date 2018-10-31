@@ -125,7 +125,7 @@ public class FileTransferClient implements Runnable {
 
         } catch (Exception ex) {
             ex.printStackTrace();
-//            Log.i(TAG, "upload: ");
+            Log.i(TAG, "upload: " + ex.getMessage());
         }
     }
 

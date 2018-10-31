@@ -8,6 +8,7 @@ import com.easygo.monitor.R;
  * @date : 2016/12/26
  */
 public class EZOpenConstant {
+    public static final String EXTRA_CAMERA_NAME = "CameraName";
     public static final String EXTRA_DEVICE_SERIAL = "DeviceSerial";
     public static final String EXTRA_CAMERA_NO = "CameraNo";
     public static final String EXTRA_POSITION = "position";
