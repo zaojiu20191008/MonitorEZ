@@ -2,15 +2,12 @@ package com.easygo.tv.activity;
 
 import android.os.Bundle;
 import android.support.annotation.Nullable;
-import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentTransaction;
 import android.support.v7.app.AppCompatActivity;
 import android.text.TextUtils;
 import android.util.Log;
-import android.util.SparseArray;
-import android.view.TextureView;
-import android.widget.FrameLayout;
-import android.widget.GridLayout;
+import android.view.Window;
+import android.view.WindowManager;
 import android.widget.Toast;
 
 import com.easygo.monitor.R;
@@ -20,9 +17,6 @@ import com.easygo.tv.fragment.EZPlayerFragment;
 import com.easygo.tv.message.CMQ;
 
 import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.Map;
 
 import io.realm.OrderedRealmCollection;
 
@@ -71,6 +65,10 @@ public class LiveStreamActivity extends AppCompatActivity {
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
+
+        requestWindowFeature(Window.FEATURE_NO_TITLE);
+        getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN,
+                WindowManager.LayoutParams.FLAG_FULLSCREEN);
         setContentView(R.layout.live_stream);
 
         ezPlay();
@@ -104,7 +102,7 @@ public class LiveStreamActivity extends AppCompatActivity {
 
             lists.add(EZPlayerFragment);
 
-            mPlaying.put(i, data.get(i).getDeviceSerial());
+            hasPlaying[i] = data.get(i).getDeviceSerial();
         }
 
         FragmentTransaction transaction = getSupportFragmentManager().beginTransaction();
@@ -142,15 +140,23 @@ public class LiveStreamActivity extends AppCompatActivity {
                                     add(split[1]);
                                 }
                             });
+                        } else if(msg.startsWith("startRecord")) {
+                            final String[] split = msg.split("_");
+                            runOnUiThread(new Runnable() {
+                                @Override
+                                public void run() {
+                                    startRecord(split[1]);
+                                }
+                            });
+                        } else if(msg.startsWith("stopRecord")) {
+                            final String[] split = msg.split("_");
+                            runOnUiThread(new Runnable() {
+                                @Override
+                                public void run() {
+                                    stopRecord(split[1]);
+                                }
+                            });
                         }
-
-
-//                        if("remove_182365469".equals(msg)) {
-//                            remove("182365469");
-//                        } else if("add_182365469".equals(msg)) {
-//                            add("182365469");
-//                        }
-
 
                         runOnUiThread(new Runnable() {
                             @Override
@@ -164,17 +170,6 @@ public class LiveStreamActivity extends AppCompatActivity {
                 Log.i(TAG, "run: 停止······················");
             }
         }).start();
-//        CMQ.getInstance().accept(new CMQ.OnMessageListener() {
-//            @Override
-//            public void onAccept(String msg) {
-//                //接收后台返回的消息
-//
-//
-//                //1.获取摄像头 序列号
-//                //2.获取消息类型  （开门直播、录制）
-//                //3.根据类型 执行不同方法
-//            }
-//        });
     }
 
     @Override
@@ -191,11 +186,8 @@ public class LiveStreamActivity extends AppCompatActivity {
     }
 
 
-//    public ArrayList<Integer> hasPlayingIndexs = new ArrayList<>();
-    public int[] hasPlayingIndexs = new int[16];
+    public String[] hasPlaying = new String[16];
 
-    public HashMap<Integer, String> mPlaying = new HashMap<>();
-//    public SparseArray<String> mPlaying = new SparseArray<>();
 
     public void add(String deviceSerial) {
         if(TextUtils.isEmpty(deviceSerial)) {
@@ -215,51 +207,31 @@ public class LiveStreamActivity extends AppCompatActivity {
 
         int index = 0;
 
-        if(mPlaying.size() != 0) {
-
-            Iterator<Map.Entry<Integer, String>> iterator = mPlaying.entrySet().iterator();
-            while (iterator.hasNext()) {
-                if(iterator.next().getValue() == null) {
-                    index = iterator.next().getKey();
-
-                    break;
-
-                }
+        int length = hasPlaying.length;
+        for (int i = 0; i < length; i++) {
+            if(hasPlaying[i] != null) {
+                continue;
             }
+            index = i;
+            break;
         }
 
         Log.i(TAG, "add: 添加位置序号 --> " + index);
 
-        mPlaying.put(index, deviceSerial);
-
-//        for (int i : mPlaying) {
-//            if(i == 1)
-//                continue;
-//
-//            //该位置没有视频直播
-//            index = i;
-//            hasPlayingIndexs[i] = 1;
-//            break;
-//
-//        }
+        hasPlaying[index] = deviceSerial;
 
 
         FragmentTransaction transaction = getSupportFragmentManager().beginTransaction();
-        transaction.add(ids[index], EZPlayerFragment, deviceSerial).commit();
-//        transaction.add(ids[mPlayingCount], EZPlayerFragment, deviceSerial).commit();
+//        transaction.add(ids[index], EZPlayerFragment, deviceSerial).commit();
+        transaction.replace(ids[index], EZPlayerFragment, deviceSerial).commit();
 
         mPlayingCount++;
 
     }
 
     public void remove(String deviceSerial) {
-        //根据序列号找到 Fragment
-
-        //调用方法 停止录制和播放，释放资源
-
 
         EZPlayerFragment fragment = (EZPlayerFragment) getSupportFragmentManager().findFragmentByTag(deviceSerial);
-//        fragment.stopRecord();
 
         if(fragment == null) {
             Log.i(TAG, "remove: 找不到fragment");
@@ -272,31 +244,19 @@ public class LiveStreamActivity extends AppCompatActivity {
 
         int index = 0;
 
-        if(mPlaying.size() == 0) {
-            Log.i(TAG, "remove: 没有正在播放的视频 直接返回");
-            return;
-        }
-        Iterator<Map.Entry<Integer, String>> iterator = mPlaying.entrySet().iterator();
-        while (iterator.hasNext()) {
-            if(deviceSerial.equals(iterator.next().getValue())) {
-                index = iterator.next().getKey();
-
+        int length = hasPlaying.length;
+        for (int i = 0; i < length; i++) {
+            if(deviceSerial.equals(hasPlaying[i])) {
+                index = i;
                 break;
             }
         }
 
-        mPlaying.put(index, null);
+        Log.i(TAG, "remove: 删除位置序号 --> " + index);
+
+        hasPlaying[index] = null;
 
         mPlayingCount--;
-
-        GridLayout gridLayout = (GridLayout) findViewById(R.id.grid_layout);
-        int childCount = gridLayout.getChildCount();
-        Log.i(TAG, "remove: childCount --> " + childCount);
-
-        Log.i(TAG, "remove: fragment1 --> " + ((FrameLayout) findViewById(R.id.fragment_1)).getChildCount());
-        Log.i(TAG, "remove: fragment2 --> " + ((FrameLayout) findViewById(R.id.fragment_2)).getChildCount());
-        Log.i(TAG, "remove: fragment3 --> " + ((FrameLayout) findViewById(R.id.fragment_3)).getChildCount());
-        Log.i(TAG, "remove: fragment4 --> " + ((FrameLayout) findViewById(R.id.fragment_4)).getChildCount());
 
     }
 
@@ -308,6 +268,17 @@ public class LiveStreamActivity extends AppCompatActivity {
         }
 
         fragment.startRecord();
+
+    }
+
+    public void stopRecord(String deviceSerial) {
+        EZPlayerFragment fragment = (EZPlayerFragment) getSupportFragmentManager().findFragmentByTag(deviceSerial);
+        if (fragment == null) {
+            Log.i(TAG, "remove: 找不到fragment");
+            return;
+        }
+
+        fragment.stopRecord();
 
     }
 

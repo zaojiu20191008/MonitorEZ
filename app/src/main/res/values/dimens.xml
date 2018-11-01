@@ -7,4 +7,12 @@
 
     <dimen name="botton_text_size">13dp</dimen>
     <dimen name="tab_text_size">16dp</dimen>
+
+
+    <dimen name="tv_player_width">480px</dimen>
+    <dimen name="tv_player_height">270px</dimen>
+
+    <!--<dimen name="tv_player_width">960px</dimen>-->
+    <!--<dimen name="tv_player_height">540px</dimen>-->
+
 </resources>
