@@ -105,7 +105,7 @@ public class EZPlayerFragment extends Fragment implements SurfaceHolder.Callback
 //            }
             switch (msg.what) {
                 case MSG_REFRESH_PLAY_UI:
-                    EZLog.d(TAG, "MSG_REFRESH_PLAY_UI");
+//                    EZLog.d(TAG, "MSG_REFRESH_PLAY_UI");
                     removeMessages(MSG_REFRESH_PLAY_UI);
 //                    ower.updateRateFlow();
                     updateRecordTime();
@@ -662,6 +662,10 @@ public class EZPlayerFragment extends Fragment implements SurfaceHolder.Callback
         mRecordLayout.setVisibility(View.GONE);
 //        mPlayUI.mRecordImg.setImageResource(R.drawable.btn_record_selector);
         mIsRecording = false;
+    }
+
+    public String getRecordPath() {
+        return mRecordPath;
     }
 
 }

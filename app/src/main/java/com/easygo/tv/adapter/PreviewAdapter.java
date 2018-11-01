@@ -34,7 +34,7 @@ import rx.schedulers.Schedulers;
 
 public class PreviewAdapter extends RecyclerView.Adapter<PreviewAdapter.PreviewViewHolder> {
 
-    public int count = 10;
+    public int count = 2;
 //    public int count = 1;
 
     private Context context;
@@ -66,12 +66,12 @@ public class PreviewAdapter extends RecyclerView.Adapter<PreviewAdapter.PreviewV
 
 
 //        Observable.timer(1, TimeUnit.SECONDS)
-        Subscription subscribe = Observable.interval(0, 4000, TimeUnit.MILLISECONDS)
+        Subscription subscribe = Observable.interval(0, 1000, TimeUnit.MILLISECONDS)
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe(new Action1<Long>() {
                     @Override
                     public void call(Long aLong) {
-                        if(aLong > 120) {
+                        if(aLong > 60) {
                             subscrptions.get(position).unsubscribe();
                             Log.i("test", "call: 停止");
                             return;
@@ -105,7 +105,7 @@ public class PreviewAdapter extends RecyclerView.Adapter<PreviewAdapter.PreviewV
             return;
         }
 
-        if(System.currentTimeMillis()-start > 120000) {
+        if(System.currentTimeMillis()-start > 60000) {
             Log.i("test", "captureCamera: captureCount  -->  停止, " + (System.currentTimeMillis()-start));
             return;
         }
@@ -139,7 +139,7 @@ public class PreviewAdapter extends RecyclerView.Adapter<PreviewAdapter.PreviewV
                             .asBitmap()
                             .into(640,360)
                             .get();
-                    Log.i("time", "call: 解析位图 time --> " + (System.currentTimeMillis() - s));
+//                    Log.i("time", "call: 解析位图 time --> " + (System.currentTimeMillis() - s));
                 } catch (InterruptedException e) {
                     e.printStackTrace();
                 } catch (ExecutionException e) {

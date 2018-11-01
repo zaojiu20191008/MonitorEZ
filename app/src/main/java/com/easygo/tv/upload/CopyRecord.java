@@ -1,5 +1,8 @@
 package com.easygo.tv.upload;
 
+import android.content.Context;
+import android.content.SharedPreferences;
+import android.preference.PreferenceManager;
 import android.util.Log;
 
 import com.easygo.monitor.utils.DataManager;
@@ -22,6 +25,8 @@ public class CopyRecord {
     private String recordDir = DataManager.getInstance().getRecodeFilePath();//录像目录  Records/
 
     private static ExecutorService cachedThreadPool;
+
+    private SharedPreferences sp;
 
     private CopyRecord() {
         if(cachedThreadPool == null) {
@@ -93,6 +98,32 @@ public class CopyRecord {
             cachedThreadPool.execute(runnable);
         }
 
+    }
+
+    public void copy(final Context context, final String recordPath) {
+        FileTransferClient runnable = new FileTransferClient(recordPath, new FileTransferClient.TransferListener() {
+            @Override
+            public void onTransferSuccess() {
+                Log.i(TAG, "onTransferSuccess: 清除 拷贝标记 --> " + recordPath);
+                getSp(context).edit().remove(recordPath).apply();
+            }
+        });
+        cachedThreadPool.execute(runnable);
+    }
+
+    private SharedPreferences getSp(Context context) {
+        if(sp == null) {
+            sp = PreferenceManager.getDefaultSharedPreferences(context);
+        }
+        return sp;
+    }
+
+    public void saveRecordPath(Context context, String recordPath) {
+        Log.i(TAG, "saveRecordPath: 设置拷贝标记 --> " + recordPath);
+        // true 表示需要进行拷贝
+        getSp(context).edit()
+                .putBoolean(recordPath, true)
+                .apply();
     }
 
 

@@ -234,13 +234,13 @@ public class CMQ {
 //            msgBody = "add_182364991";
 //            msgBody = "remove_182364991";
 //            msgBody = "startRecord_182364991";
-            msgBody = "stopRecord_182364991";
+//            msgBody = "stopRecord_182364991";
 //            vtMsgBody.add(msgBody);
 
 //            msgBody = "add_182365528";
 //            msgBody = "remove_182365528";
 //            msgBody = "startRecord_182365528";
-//            msgBody = "stopRecord_182365528";
+            msgBody = "stopRecord_182365528";
             vtMsgBody.add(msgBody);
 
 

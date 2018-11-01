@@ -52,6 +52,18 @@ public class FileTransferClient implements Runnable {
         this.filePath = filePath;
     }
 
+    public FileTransferClient(String filePath, TransferListener listener) {
+        this.filePath = filePath;
+        this.listener = listener;
+    }
+
+
+    private TransferListener listener;
+    public interface TransferListener {
+        void onTransferSuccess();
+    }
+
+
     /**
      * 向服务端传输文件
      *
@@ -116,6 +128,10 @@ public class FileTransferClient implements Runnable {
             sendFile(filePath); // 传输文件
 
             if(hasAlreadyUpload) {
+                if(listener != null) {
+                    listener.onTransferSuccess();
+                }
+
                 //上传完成 删除文件
                 File deleteFile = new File(filePath);
                 if(deleteFile.exists()) {

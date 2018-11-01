@@ -1,13 +1,19 @@
 package com.easygo.tv.activity;
 
+import android.graphics.Color;
+import android.graphics.drawable.ColorDrawable;
 import android.os.Bundle;
+import android.os.Handler;
 import android.support.annotation.Nullable;
 import android.support.v4.app.FragmentTransaction;
 import android.support.v7.app.AppCompatActivity;
 import android.text.TextUtils;
 import android.util.Log;
+import android.view.View;
+import android.view.ViewGroup;
 import android.view.Window;
 import android.view.WindowManager;
+import android.widget.FrameLayout;
 import android.widget.Toast;
 
 import com.easygo.monitor.R;
@@ -15,7 +21,9 @@ import com.easygo.monitor.common.EZOpenConstant;
 import com.easygo.monitor.model.EZOpenCameraInfo;
 import com.easygo.tv.fragment.EZPlayerFragment;
 import com.easygo.tv.message.CMQ;
+import com.easygo.tv.upload.CopyRecord;
 
+import java.lang.reflect.Array;
 import java.util.ArrayList;
 
 import io.realm.OrderedRealmCollection;
@@ -33,7 +41,9 @@ public class LiveStreamActivity extends AppCompatActivity {
             "182365528"
     };
 
-    private int mPlayingCount = 3;
+    private int mPlayingCount = 2;
+//    private final int mMaxVisibilityCount = 16;
+    private final int mMaxVisibilityCount = 2;
 
 
     public int[] ids = new int[]{
@@ -87,7 +97,7 @@ public class LiveStreamActivity extends AppCompatActivity {
 
         lists = new ArrayList<>();
 //        int count = ids.length;
-        int count = 3;
+        int count = 2;
 
         for (int i = 0; i < count; i++) {
             EZPlayerFragment EZPlayerFragment = new EZPlayerFragment();
@@ -102,7 +112,7 @@ public class LiveStreamActivity extends AppCompatActivity {
 
             lists.add(EZPlayerFragment);
 
-            hasPlaying[i] = data.get(i).getDeviceSerial();
+            mPlaying.add(i, data.get(i).getDeviceSerial());
         }
 
         FragmentTransaction transaction = getSupportFragmentManager().beginTransaction();
@@ -183,10 +193,24 @@ public class LiveStreamActivity extends AppCompatActivity {
         super.onPause();
 
         CMQ.getInstance().stop();
+
+
     }
 
 
-    public String[] hasPlaying = new String[16];
+    private EZPlayerFragment createFragment(String deviceSerial, int cameraNo, String cameraName) {
+        EZPlayerFragment EZPlayerFragment = new EZPlayerFragment();
+
+        Bundle bundle = new Bundle();
+        bundle.putString(EZOpenConstant.EXTRA_DEVICE_SERIAL, deviceSerial);
+        bundle.putString(EZOpenConstant.EXTRA_CAMERA_NAME, cameraName);
+        bundle.putInt(EZOpenConstant.EXTRA_CAMERA_NO, cameraNo);
+        EZPlayerFragment.setArguments(bundle);
+
+        return EZPlayerFragment;
+    }
+
+    public ArrayList<String> mPlaying = new ArrayList<>();
 
 
     public void add(String deviceSerial) {
@@ -196,34 +220,56 @@ public class LiveStreamActivity extends AppCompatActivity {
             return;
         }
         Log.i(TAG, "add: 添加 " + deviceSerial);
-        EZPlayerFragment EZPlayerFragment = new EZPlayerFragment();
 
-        Bundle bundle = new Bundle();
-//            bundle.putString(EZOpenConstant.EXTRA_DEVICE_SERIAL, serials[i]);
-        bundle.putString(EZOpenConstant.EXTRA_DEVICE_SERIAL, deviceSerial);
-        bundle.putString(EZOpenConstant.EXTRA_CAMERA_NAME, "门店名称");
-        bundle.putInt(EZOpenConstant.EXTRA_CAMERA_NO, 1);
-        EZPlayerFragment.setArguments(bundle);
+        int index = findNeedAddIndex();
 
-        int index = 0;
+        final EZPlayerFragment ezPlayerFragment = createFragment(deviceSerial, 1, "门店名称");
 
-        int length = hasPlaying.length;
-        for (int i = 0; i < length; i++) {
-            if(hasPlaying[i] != null) {
-                continue;
-            }
-            index = i;
-            break;
+        int containerId;
+
+        if(index < mMaxVisibilityCount) {
+            //屏幕上16个未满
+            Log.i(TAG, "add: 屏幕未满16个");
+            containerId = ids[index];
+
+        }
+        else {
+            //屏幕上16个已满
+            Log.i(TAG, "add: 屏幕已满16个");
+            FrameLayout parent = (FrameLayout) findViewById(R.id.frame_layout);
+
+            FrameLayout fragmentParent = new FrameLayout(LiveStreamActivity.this);
+            fragmentParent.setBackgroundColor(Color.parseColor("#88000000"));
+            fragmentParent.setId(index);
+            fragmentParent.setTag(deviceSerial);
+            FrameLayout.LayoutParams lp = new FrameLayout.LayoutParams(-2, -2);
+            lp.width = getResources().getDimensionPixelSize(R.dimen.tv_player_width);
+            lp.height = getResources().getDimensionPixelSize(R.dimen.tv_player_height);
+            fragmentParent.setLayoutParams(lp);
+
+            parent.addView(fragmentParent);
+
+            fragmentParent.setVisibility(View.INVISIBLE);
+
+            containerId = index;
+
+
+            new Handler().postDelayed(new Runnable() {
+                @Override
+                public void run() {
+                    Toast.makeText(LiveStreamActivity.this, "开始录制···········", Toast.LENGTH_SHORT).show();
+                    ezPlayerFragment.startRecord();
+                }
+            }, 3000);
         }
 
         Log.i(TAG, "add: 添加位置序号 --> " + index);
 
-        hasPlaying[index] = deviceSerial;
+        mPlaying.add(index, deviceSerial);
 
 
         FragmentTransaction transaction = getSupportFragmentManager().beginTransaction();
-//        transaction.add(ids[index], EZPlayerFragment, deviceSerial).commit();
-        transaction.replace(ids[index], EZPlayerFragment, deviceSerial).commit();
+        transaction.replace(containerId, ezPlayerFragment, deviceSerial).commit();
 
         mPlayingCount++;
 
@@ -242,23 +288,60 @@ public class LiveStreamActivity extends AppCompatActivity {
         fragment.release();
         transaction.remove(fragment).commit();
 
-        int index = 0;
+        int index = findRemoveIndex(deviceSerial);
 
-        int length = hasPlaying.length;
-        for (int i = 0; i < length; i++) {
-            if(deviceSerial.equals(hasPlaying[i])) {
-                index = i;
-                break;
+        if(index >= mMaxVisibilityCount) {
+            //移除的是 屏幕外的视频
+            FrameLayout parent = (FrameLayout) findViewById(R.id.frame_layout);
+            int childCount = parent.getChildCount();
+            View needRemove = null;
+            for (int i = 0; i < childCount; i++) {
+                View view = parent.getChildAt(i);
+                String tag = (String) view.getTag();
+                if(deviceSerial.equals(tag)) {
+                    needRemove = view;
+                    Log.i(TAG, "frame_layout中 remove: i --> " + i);
+                    break;
+                }
             }
+
+            if(needRemove != null) {
+                parent.removeView(needRemove);
+            }
+
+
         }
 
         Log.i(TAG, "remove: 删除位置序号 --> " + index);
 
-        hasPlaying[index] = null;
+        mPlaying.add(index, null);
 
         mPlayingCount--;
 
     }
+
+    private int findNeedAddIndex() {
+        int size = mPlaying.size();
+        for (int i = 0; i < size; i++) {
+            if(mPlaying.get(i) != null) {
+                continue;
+            }
+            return i;
+        }
+        //遍历完都有画面，找下一个位置
+        return size;
+    }
+
+    private int findRemoveIndex(String deviceSerial) {
+        int size = mPlaying.size();
+        for (int i = 0; i < size; i++) {
+            if(deviceSerial.equals(mPlaying.get(i))) {
+                return i;
+            }
+        }
+        return 0;
+    }
+
 
     public void startRecord(String deviceSerial) {
         EZPlayerFragment fragment = (EZPlayerFragment) getSupportFragmentManager().findFragmentByTag(deviceSerial);
@@ -280,7 +363,48 @@ public class LiveStreamActivity extends AppCompatActivity {
 
         fragment.stopRecord();
 
+        String recordPath = fragment.getRecordPath();
+
+        //将需要拷贝的文件路径，存到本地
+        CopyRecord.getInstance().saveRecordPath(getApplicationContext(), recordPath);
+
+        //开启线程  拷贝文件
+        CopyRecord.getInstance().copy(getApplicationContext(), recordPath);
+
     }
+
+    public void addInvisibility(String deviceSerial) {
+        if(mPlayingCount >= mMaxVisibilityCount) {
+            FrameLayout parent = (FrameLayout) findViewById(R.id.frame_layout);
+
+            FrameLayout fragmentParent = new FrameLayout(LiveStreamActivity.this);
+            fragmentParent.setId(findNeedAddIndex());
+            fragmentParent.setTag(deviceSerial);
+            FrameLayout.LayoutParams lp = (FrameLayout.LayoutParams) fragmentParent.getLayoutParams();
+            lp.width = getResources().getDimensionPixelSize(R.dimen.tv_player_width);
+            lp.height = getResources().getDimensionPixelSize(R.dimen.tv_player_height);
+
+            parent.addView(fragmentParent);
+
+
+
+            EZPlayerFragment EZPlayerFragment = new EZPlayerFragment();
+
+            Bundle bundle = new Bundle();
+            bundle.putString(EZOpenConstant.EXTRA_DEVICE_SERIAL, deviceSerial);
+            bundle.putString(EZOpenConstant.EXTRA_CAMERA_NAME, "门店名称");
+            bundle.putInt(EZOpenConstant.EXTRA_CAMERA_NO, 1);
+            EZPlayerFragment.setArguments(bundle);
+
+
+            FragmentTransaction transaction = getSupportFragmentManager().beginTransaction();
+//            transaction.replace(ids[index], EZPlayerFragment, deviceSerial).commit();
+
+            mPlayingCount++;
+
+        }
+    }
+
 
 
 

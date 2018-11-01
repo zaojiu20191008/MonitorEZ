@@ -94,8 +94,9 @@ public class LiveStreamWelcome extends RootActivity implements DeviceView, Login
     }
 
     @Override
-    public void loginSucces() {
-        EZOpenSDK.setAccessToken(Constant.TOKEN);
+    public void loginSucces(String token) {
+//        EZOpenSDK.setAccessToken(Constant.TOKEN);
+        EZOpenSDK.setAccessToken(token);
 
         mDevicePresenter = new DevicePresenter(this);
 
