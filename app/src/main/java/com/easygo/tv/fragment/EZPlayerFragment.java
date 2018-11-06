@@ -4,20 +4,26 @@ import android.app.Activity;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
+import android.os.SystemClock;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
 import android.text.TextUtils;
 import android.util.DisplayMetrics;
 import android.util.Log;
+import android.util.TypedValue;
+import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.SurfaceHolder;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.LinearLayout;
+import android.widget.RelativeLayout;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.easygo.monitor.R;
 import com.easygo.monitor.common.EZOpenConstant;
+import com.easygo.monitor.model.EZOpenVideoQualityInfo;
 import com.easygo.monitor.presenter.PlayPresenter;
 import com.easygo.monitor.utils.DataManager;
 import com.easygo.monitor.utils.DateUtil;
@@ -25,14 +31,18 @@ import com.easygo.monitor.utils.EZLog;
 import com.easygo.monitor.utils.EZOpenUtils;
 import com.easygo.monitor.view.PlayView;
 import com.easygo.monitor.view.widget.EZUIPlayerView;
+import com.easygo.tv.upload.CopyRecord;
 import com.videogo.exception.BaseException;
 import com.videogo.exception.ErrorCode;
+import com.videogo.openapi.EZOpenSDK;
 import com.videogo.openapi.EZPlayer;
 import com.videogo.openapi.OnEZPlayerCallBack;
 
 import java.lang.ref.WeakReference;
 import java.util.Calendar;
 import java.util.concurrent.atomic.AtomicBoolean;
+
+import io.realm.RealmList;
 
 public class EZPlayerFragment extends Fragment implements SurfaceHolder.Callback, PlayView {
 
@@ -67,6 +77,7 @@ public class EZPlayerFragment extends Fragment implements SurfaceHolder.Callback
     private String mDeviceSerial;
     private int mCameraNo;
     private String mCameraName;
+    private boolean mNeedStartRecordAfterPlay = false;
 
     private String mVerifyCode;
 
@@ -151,13 +162,15 @@ public class EZPlayerFragment extends Fragment implements SurfaceHolder.Callback
         mDeviceSerial = bundle.getString(EZOpenConstant.EXTRA_DEVICE_SERIAL);
         mCameraNo = bundle.getInt(EZOpenConstant.EXTRA_CAMERA_NO, -1);
         mCameraName = bundle.getString(EZOpenConstant.EXTRA_CAMERA_NAME);
+        mNeedStartRecordAfterPlay = bundle.getBoolean(EZOpenConstant.EXTRA_START_RECORD_AFTER_PLAY);
 
         //设置名字
         mNameTextView.setText(mCameraName);
 
         mEZPlayer = EZPlayer.createPlayer(mDeviceSerial, mCameraNo);
 
-//        mPlayPresenter.prepareInfo(mDeviceSerial, mCameraNo);
+        mPlayPresenter.prepareInfo(mDeviceSerial, mCameraNo);
+
         mEZPlayer.setOnEZPlayerCallBack(new OnEZPlayerCallBack() {
             @Override
             public void onPlaySuccess() {
@@ -209,12 +222,14 @@ public class EZPlayerFragment extends Fragment implements SurfaceHolder.Callback
         mHandler.sendEmptyMessage(MSG_REFRESH_PLAY_UI);
 
         //todo test
-//        mHandler.postDelayed(new Runnable() {
-//            @Override
-//            public void run() {
-//                startRecord();
-//            }
-//        }, 2000);
+        if(mNeedStartRecordAfterPlay) {
+            mHandler.postDelayed(new Runnable() {
+                @Override
+                public void run() {
+                    startRecord();
+                }
+            }, 2000);
+        }
     }
     /**
      * 处理播放失败的情况
@@ -370,10 +385,24 @@ public class EZPlayerFragment extends Fragment implements SurfaceHolder.Callback
     public void onResume() {
         super.onResume();
 
+        if (mOffline) {//离线
+            return;
+        }
+
         if (isResumePlay.get() && isInitSurface.get()) {
             isResumePlay.set(false);
             EZLog.d(TAG, "onResume   isInitSurface = " + isInitSurface);
-            startRealPlay();
+            if(mIsSettingQuality) {
+                EZLog.d(TAG, "onResume   等待分辨率设置完成： " + mCameraName);
+                mHandler.postDelayed(new Runnable() {
+                    @Override
+                    public void run() {
+                        startRealPlay();
+                    }
+                }, 500);
+            } else {
+                startRealPlay();
+            }
         }
     }
 
@@ -459,9 +488,23 @@ public class EZPlayerFragment extends Fragment implements SurfaceHolder.Callback
             mEZPlayer.setSurfaceHold(holder);
         }
 
+        if(mOffline)//离线
+            return;
+
         if (isInitSurface.compareAndSet(false,true) && isResumePlay.get()) {
             isResumePlay.set(false);
-            startRealPlay();
+
+            if(mIsSettingQuality) {
+                EZLog.d(TAG, "onResume   等待分辨率设置完成： " + mCameraName);
+                mHandler.postDelayed(new Runnable() {
+                    @Override
+                    public void run() {
+                        startRealPlay();
+                    }
+                }, 500);
+            } else {
+                startRealPlay();
+            }
         }
     }
 
@@ -482,17 +525,25 @@ public class EZPlayerFragment extends Fragment implements SurfaceHolder.Callback
 
     @Override
     public void handleEZOpenCameraInfo() {
-
     }
 
     @Override
     public void handlePrepareInfo() {
-
+        refreshUI();
     }
 
     @Override
     public void handleSetQualitSuccess() {
+        Log.i("test", "handleSetQualitSuccess: ");
+        isSettingQuality.set(true);
+        mIsSettingQuality = true;
+    }
 
+    @Override
+    public void handleSetQualitFailed() {
+        Log.i("test", "handleSetQualitFailed: 设置分辨率 失败！！！");
+        isSettingQuality.set(true);
+        mIsSettingQuality = true;
     }
 
     @Override
@@ -527,6 +578,51 @@ public class EZPlayerFragment extends Fragment implements SurfaceHolder.Callback
 
     @Override
     public void showToast(int resId, int errorCode) {
+
+    }
+
+
+    private AtomicBoolean isSettingQuality = new AtomicBoolean(false);
+    private boolean mIsSettingQuality = false;
+    private boolean mOffline = true;
+
+    /**
+     * 更新UI
+     */
+    private void refreshUI() {
+        if (mPlayPresenter.getOpenDeviceInfo() != null && mPlayPresenter.getOpenCameraInfo() != null) {
+            if (mPlayPresenter.getOpenDeviceInfo().getStatus() == 2) {
+                // TODO: 2016/12/28 不在线处理
+                mEZUIPlayerView.showTipText(R.string.realplay_fail_device_not_exist);
+
+                mOffline = true;
+                return;
+            } else {
+                // TODO: 2016/12/28 设备在线处理
+                mOffline = false;
+            }
+
+            RealmList<EZOpenVideoQualityInfo> qualityInfos = mPlayPresenter.getOpenCameraInfo().getEZOpenVideoQualityInfos();
+            for (EZOpenVideoQualityInfo qualityInfo : qualityInfos) {
+                int videoLevel = qualityInfo.getVideoLevel();
+                Log.i("vl", "refreshUI: 支持清晰度 -- " + videoLevel);
+            }
+            int videoLevel = mPlayPresenter.getOpenCameraInfo().getVideoLevel();
+            Log.i("vl", "refreshUI: 当前清晰度 --> " + videoLevel);
+
+            int setLevel = 1;//设置的视频分辨率
+            if(videoLevel != setLevel) {
+//                EZLog.debugLog(TAG, "开始设置分辨率 - deviceSerial: " + mDeviceSerial);
+                EZLog.debugLog(TAG, "开始设置分辨率 - cameraName: " + mCameraName);
+                //清晰度 不为均衡时
+                isSettingQuality.set(true);
+                mIsSettingQuality = true;
+                mPlayPresenter.setQuality(mDeviceSerial, mCameraNo, setLevel);
+            } else {
+                EZLog.debugLog(TAG, "分辨率已经为 均衡 - deviceSerial: " + mDeviceSerial);
+
+            }
+        }
 
     }
 
@@ -569,6 +665,10 @@ public class EZPlayerFragment extends Fragment implements SurfaceHolder.Callback
     private int mRecordTime = 0;
     private String mLastOSDTime;
 
+    public void setRecordPath(String recordPath) {
+        this.mRecordPath = recordPath;
+    }
+
     /**
      * 开启录像到手机
      */
@@ -592,8 +692,13 @@ public class EZPlayerFragment extends Fragment implements SurfaceHolder.Callback
             showToast(R.string.remoteplayback_record_fail_for_memory);
             return;
         }
-        mRecordPath = DataManager.getRecordFile();
+        if(TextUtils.isEmpty(mRecordPath))
+            mRecordPath = DataManager.getRecordFile();
+
         EZLog.d(TAG, "mRecordPath: " + mRecordPath);
+        Toast.makeText(getActivity(), "开始录制···········", Toast.LENGTH_SHORT).show();
+        //记录正在录制的视频路径
+        CopyRecord.getInstance().addRecordingPath(mRecordPath);
         if (mEZPlayer != null) {
             EZOpenUtils.soundPool(getContext(), R.raw.record);
             if (mEZPlayer.startLocalRecordWithFile(mRecordPath)) {
@@ -662,6 +767,9 @@ public class EZPlayerFragment extends Fragment implements SurfaceHolder.Callback
         mRecordLayout.setVisibility(View.GONE);
 //        mPlayUI.mRecordImg.setImageResource(R.drawable.btn_record_selector);
         mIsRecording = false;
+
+        //移除记录：正在录制的视频路径
+        CopyRecord.getInstance().removeRecordingPath(mRecordPath);
     }
 
     public String getRecordPath() {

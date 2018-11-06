@@ -34,7 +34,7 @@ import rx.schedulers.Schedulers;
 
 public class PreviewAdapter extends RecyclerView.Adapter<PreviewAdapter.PreviewViewHolder> {
 
-    public int count = 2;
+    public int count = 12;
 //    public int count = 1;
 
     private Context context;

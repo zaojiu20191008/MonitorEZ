@@ -195,7 +195,7 @@ public class EZOpenCameraInfo extends RealmObject{
         setCameraNo(cameraInfo.getCameraNo());
         setDeviceSerial(cameraInfo.getDeviceSerial());
         setIsShared(cameraInfo.getIsShared());
-        setVideoLevel(cameraInfo.getCurrentVideoLevel().getVideoLevel());
+        setVideoLevel(cameraInfo.getCurrentVideoLevel() != null? cameraInfo.getCurrentVideoLevel().getVideoLevel(): cameraInfo.getVideoLevel());
         CameraCaptureCache.getInstance().addCoverRefresh(cameraInfo.getDeviceSerial(),cameraInfo.getCameraNo(),true);
     }
 }

@@ -109,6 +109,7 @@ public class DevicePresenter extends BaseRealmPresenter{
             @Override
             public void onNext(List<EZDeviceInfo> list) {
                 mDeviceView.loadFinish();
+                mDeviceView.loadFinish(list);
                 if (list != null && list.size() > 0) {
                     EZDeviceDBManager.saveEZOpenInfo(list);
                 }
@@ -127,7 +128,8 @@ public class DevicePresenter extends BaseRealmPresenter{
     public List<EZDeviceInfo> realLoadDeviceList() throws BaseException {
         int index = 0;
 
-        int pageSize = 20;
+//        int pageSize = 20;
+        int pageSize = 100;
         List<EZDeviceInfo> list_result = new ArrayList<EZDeviceInfo>();
         //while (true) {
             List<EZDeviceInfo> list = EZOpenSDK.getDeviceList(index++, pageSize);

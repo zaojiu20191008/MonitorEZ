@@ -13,6 +13,9 @@ import com.easygo.tv.module.login.LoginPresenter;
 import com.easygo.tv.module.login.LoginContract;
 import com.easygo.tv.mvp.model.LoginModel;
 import com.videogo.openapi.EZOpenSDK;
+import com.videogo.openapi.bean.EZDeviceInfo;
+
+import java.util.List;
 
 public class PreviewWelcome extends RootActivity implements DeviceView, LoginContract.ILoginView {
 
@@ -50,6 +53,11 @@ public class PreviewWelcome extends RootActivity implements DeviceView, LoginCon
         toIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
         startActivity(toIntent);
         finish();
+    }
+
+    @Override
+    public void loadFinish(List<EZDeviceInfo> list) {
+
     }
 
     @Override

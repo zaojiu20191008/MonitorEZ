@@ -25,6 +25,10 @@ import com.easygo.monitor.view.avctivity.PlayActivity;
 import com.easygo.monitor.view.widget.CameraSettingDialog;
 import com.easygo.monitor.view.widget.PullRefreshRealmRecyclerView;
 import com.easygo.monitor.R;
+import com.videogo.openapi.bean.EZDeviceInfo;
+
+import java.util.List;
+
 /**
  * Description:预览列表
  * Created by dingwei3
@@ -123,6 +127,11 @@ public class CameraListFragment extends BaseLazyFragment implements DeviceView,P
     @Override
     public void loadFinish() {
         mPullRefreshRecyclerView.onRefreshComplete();
+    }
+
+    @Override
+    public void loadFinish(List<EZDeviceInfo> list) {
+
     }
 
     @Override

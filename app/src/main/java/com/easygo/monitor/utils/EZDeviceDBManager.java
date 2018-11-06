@@ -33,6 +33,7 @@ public class EZDeviceDBManager {
      */
     public static void saveEZOpenInfo(final List<EZDeviceInfo> list) {
         if (list != null && list.size() > 0) {
+            EZLog.debugLog("EZDeviceDBManager", "saveEZOpenInfo 开始保存数据");
             RealmAsyncTask transaction = DataManager.getInstance().getRealm().executeTransactionAsync(new Realm.Transaction() {
                 @Override
                 public void execute(Realm realm) {
@@ -83,12 +84,13 @@ public class EZDeviceDBManager {
             }, new Realm.Transaction.OnSuccess() {
                 @Override
                 public void onSuccess() {
-
+                    EZLog.debugLog("EZDeviceDBManager", "saveEZOpenInfo 保存数据完毕");
                 }
             }, new Realm.Transaction.OnError() {
                 @Override
                 public void onError(Throwable error) {
                     error.printStackTrace();
+                    EZLog.debugLog("EZDeviceDBManager", "saveEZOpenInfo 保存数据失败");
                 }
             });
         }

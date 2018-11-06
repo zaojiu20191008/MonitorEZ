@@ -2,10 +2,13 @@ package com.easygo.tv.message;
 
 import android.util.Log;
 
+import com.google.gson.Gson;
 import com.qcloud.cmq.*;
 
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 
 
 public class CMQ {
@@ -134,41 +137,8 @@ public class CMQ {
         try {
             Account account = new Account(endpoint, secretId, secretKey);
 
-//                        account.deleteQueue("queue-test10");
-            //创建队列
-//                        System.out.println("---------------create queue ...---------------");
-//                        QueueMeta meta = new QueueMeta();
-//                        meta.pollingWaitSeconds = 10;
-//                        meta.visibilityTimeout = 10;
-//                        meta.maxMsgSize = 65536;
-//                        meta.msgRetentionSeconds = 345600;
-//                        account.createQueue("queue-test10",meta);
-//                        System.out.println("queue-test10 created");
-//                        account.createQueue("queue-test11",meta);
-//                        System.out.println("queue-test11 created");
-//                        account.createQueue("queue-test12",meta);
-//                        System.out.println("queue-test12 created");
-
-            //列出当前帐号下所有队列名字
-//                        System.out.println("---------------list queue ...---------------");
-//                        ArrayList<String> vtQueue = new ArrayList<String>();
-//                        int totalCount = account.listQueue("",-1,-1,vtQueue);
-//                        System.out.println("totalCount:" + totalCount);
-//                        for(int i=0;i<vtQueue.size();i++)
-//                        {
-//                                System.out.println("queueName:" + vtQueue.get(i));
-//                        }
-
-            //删除队列
-//                        System.out.println("---------------delete queue ...---------------");
-//                        account.deleteQueue("queue-test11");
-//                        System.out.println("queue-test11 deleted");
-//                        account.deleteQueue("queue-test12");
-//                        System.out.println("queue-test12 deleted");
-
             //获得队列实例
-            System.out.println("--------------- queue[queue-test10] ---------------");
-//                        Queue queue = account.getQueue("queue-test10");
+            System.out.println("--------------- queue[android-test] ---------------");
             Queue queue = account.getQueue("android-test");
 
             //设置队列属性
@@ -178,80 +148,59 @@ public class CMQ {
             queue.setQueueAttributes(meta1);
             System.out.println("pollingWaitSeconds=20 set");
 
-            //获取队列属性
-//            System.out.println("---------------get queue attributes ...---------------");
-//            QueueMeta meta2 = queue.getQueueAttributes();
-//            System.out.println("maxMsgHeapNum:" + meta2.maxMsgHeapNum);
-//            System.out.println("pollingWaitSeconds:" + meta2.pollingWaitSeconds);
-//            System.out.println("visibilityTimeout:" + meta2.visibilityTimeout);
-//            System.out.println("maxMsgSize:" + meta2.maxMsgSize);
-//            System.out.println("createTime:" + meta2.createTime);
-//            System.out.println("lastModifyTime:" + meta2.lastModifyTime);
-//            System.out.println("activeMsgNum:" + meta2.activeMsgNum);
-//            System.out.println("inactiveMsgNum:" + meta2.inactiveMsgNum);
-
-            //发送消息
-//                        System.out.println("---------------send message ...---------------");
-//                        String msgId = queue.sendMessage("hello world,this is cmq sdk for java");
-//                        System.out.println("[hello world,this is cmq sdk for java] sent");
-
-//                        //接收消息
-//                        System.out.println("---------------recv message ...---------------");
-//                        Message msg = queue.receiveMessage(10);
-//
-//                        System.out.println("msgId:" + msg.msgId);
-//                        System.out.println("msgBody:" + msg.msgBody);
-//                        System.out.println("receiptHandle:" + msg.receiptHandle);
-//                        System.out.println("enqueueTime:" + msg.enqueueTime);
-//                        System.out.println("nextVisibleTime:" + msg.nextVisibleTime);
-//                        System.out.println("firstDequeueTime:" + msg.firstDequeueTime);
-//                        System.out.println("dequeueCount:" + msg.dequeueCount);
-//
-//                        //删除消息
-//                        System.out.println("---------------delete message ...---------------");
-//                        queue.deleteMessage(msg.receiptHandle);
-//                        System.out.println("receiptHandle:" + msg.receiptHandle +" deleted");
-
             //批量操作
             //批量发送消息
             System.out.println("---------------batch send message ...---------------");
             ArrayList<String> vtMsgBody = new ArrayList<String>();
             String msgBody = "hello world,this is cmq sdk for java 1";
 //            vtMsgBody.add(msgBody);
-//            msgBody = "hello world,this is cmq sdk for java 2";
-//            vtMsgBody.add(msgBody);
-//            msgBody = "hello world,this is cmq sdk for java 3";
-//            vtMsgBody.add(msgBody);
-//            msgBody = "stop";
 
-//            msgBody = "add_182365469";
-//            msgBody = "remove_182365469";
-//            msgBody = "startRecord_182365469";
-//            msgBody = "stopRecord_182365469";
+            Test test = new Test();
+//            test.action = Msg.ACTION_USER_START_PLAY;//开始直播
+//            test.action = Msg.ACTION_USER_STOP_PLAY;//停止直播
+//            test.action = Msg.ACTION_BP_START_RECORD;//盘点开始录制
+            test.action = Msg.ACTION_BP_STOP_RECORD;//盘点结束录制
+            test.user_id = 111;
+            test.shop_id = 319;
+            test.shop_name = "力迅上筑";
 
-//            vtMsgBody.add(msgBody);
-
-//            msgBody = "add_182364991";
-//            msgBody = "remove_182364991";
-//            msgBody = "startRecord_182364991";
-//            msgBody = "stopRecord_182364991";
-//            vtMsgBody.add(msgBody);
-
-//            msgBody = "add_182365528";
-//            msgBody = "remove_182365528";
-//            msgBody = "startRecord_182365528";
-            msgBody = "stopRecord_182365528";
+            msgBody = new Gson().toJson(test);
             vtMsgBody.add(msgBody);
 
+            //播放16个
+//            for (Map.Entry<Integer, String> entry : ShopMap.sShop.entrySet()) {
+//
+//                Test t = new Test();
+//                t.action = Msg.ACTION_USER_START_PLAY;
+//                t.shop_id = entry.getKey();
+//
+//                msgBody = new Gson().toJson(t);
+//                vtMsgBody.add(msgBody);
+//            }
 
-            //182365469
-            //182364991
-            //182365528
+//            for (String name : ShopMap.sName) {
+////            for (int i=4; i < 8; i++) {
+//
+////                String name = ShopMap.sName[i];
+////                String name = "东山雅筑商务中心";
+//                Test t = new Test();
+//                t.action = Msg.ACTION_USER_START_PLAY;
+//                t.shop_name = name;
+//
+//                msgBody = new Gson().toJson(t);
+//                vtMsgBody.add(msgBody);
+//            }
+
+
             List<String> vtMsgId = queue.batchSendMessage(vtMsgBody);
-//            for (int i = 0; i < vtMsgBody.size(); i++)
-//                System.out.println("[" + vtMsgBody.get(i) + "] sent");
+            for (int i = 0; i < vtMsgBody.size(); i++)
+                System.out.println("[" + vtMsgBody.get(i) + "] sent");
 //            for (int i = 0; i < vtMsgId.size(); i++)
 //                System.out.println("msgId:" + vtMsgId.get(i));
+
+
+//            batchReceive(queue, false);
+//            batchReceive(queue, true);
 
             //批量接收消息
 //            ArrayList<String> vtReceiptHandle = new ArrayList<String>(); //保存服务器返回的消息句柄，用于删除消息
@@ -260,17 +209,11 @@ public class CMQ {
 //            System.out.println("recv msg count:" + msgList.size());
 //            for (int i = 0; i < msgList.size(); i++) {
 //                Message msg1 = msgList.get(i);
-//                System.out.println("msgId:" + msg1.msgId);
 //                System.out.println("msgBody:" + msg1.msgBody);
-//                System.out.println("receiptHandle:" + msg1.receiptHandle);
-//                System.out.println("enqueueTime:" + msg1.enqueueTime);
-//                System.out.println("nextVisibleTime:" + msg1.nextVisibleTime);
-//                System.out.println("firstDequeueTime:" + msg1.firstDequeueTime);
-//                System.out.println("dequeueCount:" + msg1.dequeueCount);
 //
 //                vtReceiptHandle.add(msg1.receiptHandle);
 //            }
-//            //批量删除消息
+            //批量删除消息
 //            System.out.println("---------------batch delete message ...---------------");
 //            queue.batchDeleteMessage(vtReceiptHandle);
 //            for (int i = 0; i < vtReceiptHandle.size(); i++)
@@ -284,5 +227,29 @@ public class CMQ {
         } catch (Exception e) {
             System.out.println("error..." + e.toString());
         }
+    }
+
+
+    public static void batchReceive(Queue queue, boolean needDelete) throws Exception {
+
+            ArrayList<String> vtReceiptHandle = new ArrayList<>(); //保存服务器返回的消息句柄，用于删除消息
+            System.out.println("---------------batch recv message ...---------------");
+            List<Message> msgList = queue.batchReceiveMessage(10, 10);
+            System.out.println("recv msg count:" + msgList.size());
+            for (int i = 0; i < msgList.size(); i++) {
+                Message msg1 = msgList.get(i);
+                System.out.println("msgBody:" + msg1.msgBody);
+
+                vtReceiptHandle.add(msg1.receiptHandle);
+            }
+
+            if(needDelete) {
+                //批量删除消息
+            System.out.println("---------------batch delete message ...---------------");
+            queue.batchDeleteMessage(vtReceiptHandle);
+            for (int i = 0; i < vtReceiptHandle.size(); i++)
+                System.out.println("receiptHandle:" + vtReceiptHandle.get(i) + " deleted");
+            }
+
     }
 }

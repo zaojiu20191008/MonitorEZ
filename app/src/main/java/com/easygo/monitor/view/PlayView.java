@@ -27,6 +27,11 @@ public interface PlayView extends BaseView{
      */
     public void handleSetQualitSuccess();
 
+    /**
+     * 设置清晰度成功
+     */
+    public void handleSetQualitFailed();
+
 
 }
 

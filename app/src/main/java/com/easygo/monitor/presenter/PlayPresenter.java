@@ -75,6 +75,7 @@ public class PlayPresenter extends BaseRealmPresenter {
     }
 
     public void prepareInfo(String deviceSerial, int cameraNo) {
+        Log.i(TAG, "prepareInfo: deviceSerial --> " + deviceSerial);
         long b = System.currentTimeMillis();
         mDeviceSerial = deviceSerial;
         mCameraNo = cameraNo;
@@ -131,7 +132,7 @@ public class PlayPresenter extends BaseRealmPresenter {
      */
     public void setQuality(final String deviceSerial, final int cameraNo, final int videolevel) {
         if (mOpenCameraInfo.getVideoLevel() == videolevel) {
-            Log.d(TAG, "video level is same");
+            Log.d(TAG, "video level is same : " + videolevel);
             return;
         }
         mPlayView.showLoadDialog();
@@ -157,6 +158,7 @@ public class PlayPresenter extends BaseRealmPresenter {
             public void onError(Throwable e) {
                 e.printStackTrace();
                 // TODO: 2017/1/17 设置清晰度失败
+                mPlayView.handleSetQualitFailed();
                 mPlayView.dismissLoadDialog();
                 mPlayView.showToast(R.string.string_set_quality_fail, ((BaseException) e).getErrorCode());
                 onErrorBaseHandle(((BaseException) e).getErrorCode());
@@ -167,10 +169,11 @@ public class PlayPresenter extends BaseRealmPresenter {
             public void onNext(Boolean ret) {
                 mPlayView.dismissLoadDialog();
                 if (ret) {
-                    EZCameraDBManager.setDeviceVideoLevel(deviceSerial, cameraNo, videolevel);
                     mPlayView.handleSetQualitSuccess();
+                    EZCameraDBManager.setDeviceVideoLevel(deviceSerial, cameraNo, videolevel);
                 } else {
                     // TODO: 2017/1/17 设置清晰度失败
+                    mPlayView.handleSetQualitFailed();
                     mPlayView.showToast(R.string.string_set_quality_fail);
                 }
             }

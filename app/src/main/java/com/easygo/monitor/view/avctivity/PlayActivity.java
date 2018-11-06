@@ -653,6 +653,11 @@ public class PlayActivity extends RootActivity implements SurfaceHolder.Callback
         reStartPlay();
     }
 
+    @Override
+    public void handleSetQualitFailed() {
+
+    }
+
     /**
      * 重启播放
      */

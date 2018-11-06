@@ -10,7 +10,9 @@ import com.easygo.monitor.utils.DataManager;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
@@ -20,6 +22,7 @@ public class CopyRecord {
     public static final String TAG = CopyRecord.class.getSimpleName();
 
     public List<String> recordingPath = new ArrayList<>();
+    public List<String> copyingPath = new ArrayList<>();
     public List<String> needCopyRecordingPath = new ArrayList<>();
 
     private String recordDir = DataManager.getInstance().getRecodeFilePath();//录像目录  Records/
@@ -106,12 +109,15 @@ public class CopyRecord {
             public void onTransferSuccess() {
                 Log.i(TAG, "onTransferSuccess: 清除 拷贝标记 --> " + recordPath);
                 getSp(context).edit().remove(recordPath).apply();
+
+                //移除记录：正在拷贝的视频路径
+                CopyRecord.getInstance().removeCopyingPath(recordPath);
             }
         });
         cachedThreadPool.execute(runnable);
     }
 
-    private SharedPreferences getSp(Context context) {
+    public SharedPreferences getSp(Context context) {
         if(sp == null) {
             sp = PreferenceManager.getDefaultSharedPreferences(context);
         }
@@ -126,6 +132,23 @@ public class CopyRecord {
                 .apply();
     }
 
+    public void addRecordingPath (String recordPath) {
+        recordingPath.add(recordPath);
+    }
+    public void removeRecordingPath(String recordPath) {
+        recordingPath.remove(recordPath);
+    }
+    public void addCopyingPath(String recordPath) {
+        copyingPath.add(recordPath);
+    }
+    public void removeCopyingPath(String recordPath) {
+        copyingPath.remove(recordPath);
+    }
+
+    //判断 该路径文件是否正在录制或者拷贝中
+    public boolean isDuringRecordOrCopy(String path) {
+        return recordingPath.contains(path) || copyingPath.contains(path);
+    }
 
 
 
