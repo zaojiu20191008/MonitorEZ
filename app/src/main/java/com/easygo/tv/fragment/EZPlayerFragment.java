@@ -4,20 +4,16 @@ import android.app.Activity;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
-import android.os.SystemClock;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
 import android.text.TextUtils;
 import android.util.DisplayMetrics;
 import android.util.Log;
-import android.util.TypedValue;
-import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.SurfaceHolder;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.LinearLayout;
-import android.widget.RelativeLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -29,12 +25,12 @@ import com.easygo.monitor.utils.DataManager;
 import com.easygo.monitor.utils.DateUtil;
 import com.easygo.monitor.utils.EZLog;
 import com.easygo.monitor.utils.EZOpenUtils;
+import com.easygo.monitor.utils.ToastUtls;
 import com.easygo.monitor.view.PlayView;
 import com.easygo.monitor.view.widget.EZUIPlayerView;
 import com.easygo.tv.upload.CopyRecord;
 import com.videogo.exception.BaseException;
 import com.videogo.exception.ErrorCode;
-import com.videogo.openapi.EZOpenSDK;
 import com.videogo.openapi.EZPlayer;
 import com.videogo.openapi.OnEZPlayerCallBack;
 
@@ -120,6 +116,7 @@ public class EZPlayerFragment extends Fragment implements SurfaceHolder.Callback
                     removeMessages(MSG_REFRESH_PLAY_UI);
 //                    ower.updateRateFlow();
                     updateRecordTime();
+                    checkRecordTime();
                     sendEmptyMessageDelayed(MSG_REFRESH_PLAY_UI, 1000);
                     break;
 //                case MSG_HIDE_TOPBAR:
@@ -410,10 +407,6 @@ public class EZPlayerFragment extends Fragment implements SurfaceHolder.Callback
     public void onPause() {
         super.onPause();
 
-//        File file = new File(mRecordPath);
-//        File parentFile = file.getParentFile();
-//        Log.i(TAG, "onPause: 停止前： " +  parentFile.getAbsolutePath() + " --> 文件数量 " + parentFile.list().length);
-//
 //        Log.i(TAG, "onPause: 停止录制播放");
         stopRecord();
         stopRealPlay();
@@ -568,17 +561,17 @@ public class EZPlayerFragment extends Fragment implements SurfaceHolder.Callback
 
     @Override
     public void showToast(String res) {
-
+        ToastUtls.showToast(getActivity(), res);
     }
 
     @Override
     public void showToast(int resId) {
-
+        ToastUtls.showToast(getActivity(), resId);
     }
 
     @Override
     public void showToast(int resId, int errorCode) {
-
+        ToastUtls.showToast(getActivity(), resId, errorCode);
     }
 
 
@@ -774,6 +767,21 @@ public class EZPlayerFragment extends Fragment implements SurfaceHolder.Callback
 
     public String getRecordPath() {
         return mRecordPath;
+    }
+
+
+    private final long mMaxRecordTime = 60 * 60;//一小时，单位为秒
+    /**
+     * 判断录像时间是否超过最大录制时间
+     */
+    public void checkRecordTime() {
+        if(!mIsRecording) {
+            return;
+        }
+        //超过最大录制时间
+        if(mRecordTime >= mMaxRecordTime) {
+            stopRecord();
+        }
     }
 
 }

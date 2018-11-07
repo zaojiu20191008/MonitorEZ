@@ -70,7 +70,7 @@ public class Msg {
             if (ShopMap.sShop.containsKey(shop_id)) {
                 device_serial = ShopMap.sShop.get(shop_id);
             } else {
-                listener.onError("找不到门店，检查映射表！");
+                listener.onError("找不到门店(" + shop_id + ")，检查映射表！");
                 return;
             }
 

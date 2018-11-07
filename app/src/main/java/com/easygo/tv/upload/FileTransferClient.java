@@ -13,7 +13,6 @@ import java.io.DataOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.net.Socket;
-import java.net.UnknownHostException;
 
 /**
  *
@@ -24,11 +23,8 @@ public class FileTransferClient implements Runnable {
     public static final String TAG = "FileTransferClient";
 
 //    private static final String SERVER_IP = "127.0.0.1"; // 服务端IP
-//    private static final String SERVER_IP = "192.168.96.31"; // 服务端IP 
-//    private static final String SERVER_IP = "132.232.103.240"; // 服务端IP
-//    private static final int SERVER_PORT = 8899; // 服务端端口  
-//    private static final String SERVER_IP = "111.230.31.211"; // 服务端IP
     private static final String SERVER_IP = "192.168.31.75"; // 服务端IP
+//    private static final String SERVER_IP = "192.168.31.195"; // 服务端IP  （TV）
     private static final int SERVER_PORT = 6657; // 服务端端口
 
     private Socket client;

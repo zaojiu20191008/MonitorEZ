@@ -284,44 +284,15 @@ public class LiveStreamActivity extends AppCompatActivity {
                         //解析msg
                         parseMsg(msg);
 
-//                        if(msg.startsWith("remove")) {
-//                            String[] split = msg.split("_");
-//                            remove(split[1]);
-//                        } else if(msg.startsWith("add")) {
-//                            final String[] split = msg.split("_");
-//                            runOnUiThread(new Runnable() {
-//                                @Override
-//                                public void run() {
-//                                    add(split[1]);
-//                                }
-//                            });
-//                        } else if(msg.startsWith("startRecord")) {
-//                            final String[] split = msg.split("_");
-//                            runOnUiThread(new Runnable() {
-//                                @Override
-//                                public void run() {
-//                                    startRecord(split[1]);
-//                                }
-//                            });
-//                        } else if(msg.startsWith("stopRecord")) {
-//                            final String[] split = msg.split("_");
-//                            runOnUiThread(new Runnable() {
-//                                @Override
-//                                public void run() {
-//                                    stopRecord(split[1]);
-//                                }
-//                            });
-//                        }
-
-                        runOnUiThread(new Runnable() {
-                            @Override
-                            public void run() {
-                                Toast.makeText(LiveStreamActivity.this,  msg, Toast.LENGTH_SHORT).show();
-                            }
-                        });
+//                        runOnUiThread(new Runnable() {
+//                            @Override
+//                            public void run() {
+//                                Toast.makeText(LiveStreamActivity.this,  msg, Toast.LENGTH_SHORT).show();
+//                            }
+//                        });
                     }
                 });
-                Log.i(TAG, "run: 停止······················");
+                Log.i(TAG, "CMQ: 停止接收消息······················");
             }
         }).start();
     }
@@ -411,6 +382,7 @@ public class LiveStreamActivity extends AppCompatActivity {
                 runOnUiThread(new Runnable() {
                     @Override
                     public void run() {
+                        Log.i(TAG, "parseMsg()# onError(): 错误信息 -- " + msg);
                         Toast.makeText(LiveStreamActivity.this, "错误信息 -- " + msg, Toast.LENGTH_LONG).show();
                     }
                 });

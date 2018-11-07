@@ -156,12 +156,12 @@ public class CMQ {
 //            vtMsgBody.add(msgBody);
 
             Test test = new Test();
-//            test.action = Msg.ACTION_USER_START_PLAY;//开始直播
+            test.action = Msg.ACTION_USER_START_PLAY;//开始直播
 //            test.action = Msg.ACTION_USER_STOP_PLAY;//停止直播
 //            test.action = Msg.ACTION_BP_START_RECORD;//盘点开始录制
-            test.action = Msg.ACTION_BP_STOP_RECORD;//盘点结束录制
+//            test.action = Msg.ACTION_BP_STOP_RECORD;//盘点结束录制
             test.user_id = 111;
-            test.shop_id = 319;
+            test.shop_id = 292;
             test.shop_name = "力迅上筑";
 
             msgBody = new Gson().toJson(test);
@@ -172,6 +172,7 @@ public class CMQ {
 //
 //                Test t = new Test();
 //                t.action = Msg.ACTION_USER_START_PLAY;
+////                t.action = Msg.ACTION_USER_STOP_PLAY;
 //                t.shop_id = entry.getKey();
 //
 //                msgBody = new Gson().toJson(t);
