@@ -175,6 +175,8 @@
         </activity>
         <activity android:name="com.easygo.tv.mvp.base.BaseActivity"
             android:theme="@style/Theme.AppCompat.Light.NoActionBar"/>
+        <activity android:name="com.easygo.tv.activity.LoginActivity"
+            android:theme="@style/Theme.AppCompat.Light.NoActionBar"/>
 
     </application>
 

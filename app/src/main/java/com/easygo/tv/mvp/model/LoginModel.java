@@ -7,6 +7,8 @@ import com.easygo.tv.mvp.RequestListener;
 import com.easygo.tv.module.login.LoginContract;
 
 
+import java.io.IOException;
+
 import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
@@ -28,6 +30,10 @@ public class LoginModel implements LoginContract.ILoginModel {
                     HttpResult<TokenResponse> token = response.body();
                     if(listener != null) {
                         listener.onSuccess(token);
+                    }
+                } else {
+                    if(listener != null) {
+                        listener.onFailed(response.raw().toString());
                     }
                 }
 

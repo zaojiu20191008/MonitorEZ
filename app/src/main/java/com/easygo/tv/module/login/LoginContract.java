@@ -19,7 +19,7 @@ public class LoginContract {
 
     public interface ILoginView extends BaseContract.IView {
         void loginSucces(String token);
-        void loginFailed();
+        void loginFailed(String msg);
 
         void serialsSuccess();
         void serialsfailed();

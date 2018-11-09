@@ -7,6 +7,8 @@ public class Test {
     public int shop_id = 1;
     public String shop_name = "门店名称";
 
+    public int width;
+    public int height;
 
 
 

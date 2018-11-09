@@ -1,78 +1,28 @@
 package com.easygo.tv.activity;
 
 import android.content.Intent;
-import android.os.Bundle;
-import android.os.Handler;
 import android.util.Log;
-import android.widget.Toast;
 
 import com.easygo.monitor.R;
 import com.easygo.monitor.model.EZOpenCameraInfo;
 import com.easygo.monitor.presenter.DevicePresenter;
-import com.easygo.monitor.utils.EZLog;
 import com.easygo.monitor.view.DeviceView;
-import com.easygo.monitor.view.avctivity.RootActivity;
-import com.easygo.tv.module.login.LoginPresenter;
 import com.easygo.tv.module.login.LoginContract;
-import com.easygo.tv.mvp.model.LoginModel;
 import com.videogo.openapi.EZOpenSDK;
 import com.videogo.openapi.bean.EZDeviceInfo;
 
 import java.util.List;
 
-import io.realm.RealmResults;
-
-public class LiveStreamWelcome extends RootActivity implements DeviceView, LoginContract.ILoginView {
+public class LiveStreamWelcome extends LoginActivity implements DeviceView, LoginContract.ILoginView {
 
     private static final String TAG = "LiveStreamWelcome";
     private DevicePresenter mDevicePresenter;
 
 
     @Override
-    protected void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_welcome);
-        EZLog.i(TAG,"Welcome");
-
-
-        LoginPresenter loginPresenter = new LoginPresenter();
-        loginPresenter.attach(new LoginModel(), this);
-        loginPresenter.login();
-
-
-        //todo  test
-//        EZOpenSDK.setAccessToken(Constant.TOKEN);
-//
-//        mDevicePresenter = new DevicePresenter(this);
-//
-//        mDevicePresenter.loadDeviceList();
-
-
-//        new Thread(new Runnable() {
-//            @Override
-//            public void run() {
-//                CMQ.getInstance().accept(new CMQ.OnMessageListener() {
-//                    @Override
-//                    public void onAccept(final String msg) {
-//                        if("stop".equals(msg)) {
-//                            CMQ.getInstance().stop();
-//                        }
-//                        runOnUiThread(new Runnable() {
-//                            @Override
-//                            public void run() {
-//                                Toast.makeText(LiveStreamWelcome.this,  msg, Toast.LENGTH_SHORT).show();
-//                            }
-//                        });
-//                        Log.i(TAG, "onAccept: msg --> " + msg);
-//                    }
-//                });
-//                Log.i(TAG, "run: 停止······················");
-//            }
-//        }).start();
-
-
+    protected int getLayoutId() {
+        return R.layout.activity_welcome;
     }
-
 
     @Override
     public void loadFinish() {
@@ -135,8 +85,9 @@ public class LiveStreamWelcome extends RootActivity implements DeviceView, Login
     }
 
     @Override
-    public void loginFailed() {
-
+    public void loginFailed(String msg) {
+        Log.i(TAG, "loginFailed: " + msg);
+        showToast(msg);
     }
 
     @Override

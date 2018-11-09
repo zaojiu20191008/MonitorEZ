@@ -2,6 +2,8 @@ package com.easygo.tv.activity;
 
 import android.content.Intent;
 import android.os.Bundle;
+import android.support.annotation.NonNull;
+import android.view.LayoutInflater;
 
 import com.easygo.monitor.R;
 import com.easygo.monitor.presenter.DevicePresenter;
@@ -17,34 +19,16 @@ import com.videogo.openapi.bean.EZDeviceInfo;
 
 import java.util.List;
 
-public class PreviewWelcome extends RootActivity implements DeviceView, LoginContract.ILoginView {
+public class PreviewWelcome extends LoginActivity implements DeviceView, LoginContract.ILoginView {
 
     private static final String TAG = "PreviewWelcome";
     private DevicePresenter mDevicePresenter;
 
 
     @Override
-    protected void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_welcome);
-        EZLog.i(TAG,"Welcome");
-
-        LoginPresenter loginPresenter = new LoginPresenter();
-        loginPresenter.attach(new LoginModel(), this);
-        loginPresenter.login();
-
-
-
-        //todo  test
-
-//        EZOpenSDK.setAccessToken(Constant.TOKEN);
-//
-//        mDevicePresenter = new DevicePresenter(this);
-//
-//        mDevicePresenter.loadDeviceList();
-
+    protected int getLayoutId() {
+        return R.layout.activity_welcome;
     }
-
 
     @Override
     public void loadFinish() {
@@ -77,8 +61,8 @@ public class PreviewWelcome extends RootActivity implements DeviceView, LoginCon
     }
 
     @Override
-    public void loginFailed() {
-
+    public void loginFailed(String msg) {
+        showToast(msg);
     }
 
     @Override

@@ -30,12 +30,17 @@ public class Msg {
     /**
      * 开始播放
      */
-    public static final String ACTION_USER_START_PLAY = "user_start_play";
+    public static final String ACTION_USER_START_PLAY = "IN";
 
     /**
      * 停止播放
      */
     public static final String ACTION_USER_STOP_PLAY = "user_stop_play";
+
+    /**
+     * 测试消息
+     */
+    public static final String ACTION_TEST = "test";
 
 
     //其他类型
@@ -106,7 +111,14 @@ public class Msg {
                     listener.onStopPlay(msgBean);
 
                     break;
+                case ACTION_TEST:
 
+                    msgBean.width = jsonObject.optInt("width");
+                    msgBean.height = jsonObject.optInt("height");
+
+                    listener.onTest(msgBean);
+
+                    break;
                 default:
 
                     break;
@@ -133,6 +145,7 @@ public class Msg {
         void onStopPlay(MsgBean msgBean);
 
         void onError(String msg);
+        void onTest(MsgBean msgBean);
     }
 
     //user_id + shop_name + 时间戳 + 类型（盘点， 用户， 黑名单）

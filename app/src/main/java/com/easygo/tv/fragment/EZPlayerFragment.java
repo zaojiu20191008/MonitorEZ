@@ -619,11 +619,11 @@ public class EZPlayerFragment extends Fragment implements SurfaceHolder.Callback
 
     }
 
-    protected void setSurfaceSize() {
+    public void setSurfaceSize() {
         EZLog.infoLog(TAG, "setSurfaceSize");
         DisplayMetrics dm = new DisplayMetrics();
         getActivity().getWindowManager().getDefaultDisplay().getMetrics(dm);
-        mEZUIPlayerView.setSurfaceSize(dm.widthPixels, 0);
+//        mEZUIPlayerView.setSurfaceSize(dm.widthPixels, 0);
 //        mEZUIPlayerView.setSurfaceSize(500, 0);
 
         boolean isWideScrren = true;
@@ -646,6 +646,11 @@ public class EZPlayerFragment extends Fragment implements SurfaceHolder.Callback
 //            mHandler.removeMessages(MSG_SHOW_TOPBAR);
 //            mHandler.sendEmptyMessageDelayed(MSG_HIDE_TOPBAR, SHOW_TOP_BAR_TIME);
         }
+    }
+
+    public void setSurfaceSize(int width, int height) {
+        EZLog.infoLog(TAG, "setSurfaceSize(width, height)");
+        mEZUIPlayerView.setSurfaceSize(width, height);
     }
 
 

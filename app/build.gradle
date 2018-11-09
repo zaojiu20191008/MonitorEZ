@@ -29,7 +29,8 @@ android {
         }
 
         debug {
-            buildConfigField("String", "API_URL", "\"http://api.test.ieasygo.cn/\"")
+//            buildConfigField("String", "API_URL", "\"http://api.test.ieasygo.cn/\"")
+            buildConfigField("String", "API_URL", "\"http://api.dev.ieasygo.cn/\"")
         }
     }
 

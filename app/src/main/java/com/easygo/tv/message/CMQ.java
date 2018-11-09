@@ -31,6 +31,8 @@ public class CMQ {
 
     private boolean repeatAccept = true;
 
+    private final long TOLERATE = 5 * 60 * 1000;//毫秒
+
 
     private CMQ() {
         Account account = new Account(endpoint, secretId, secretKey);
@@ -79,6 +81,8 @@ public class CMQ {
         try {
             msgList = queue.batchReceiveMessage(10, 10);
             Log.i(TAG, "accept: 接收消息数量： " + msgList.size());
+
+            long currentTimeMillis = System.currentTimeMillis();
             for (int i = 0; i < msgList.size(); i++) {
                 Message msg = msgList.get(i);
 //            System.out.println("msgId:" + msg.msgId);
@@ -89,10 +93,14 @@ public class CMQ {
 //            System.out.println("firstDequeueTime:" + msg.firstDequeueTime);
 //            System.out.println("dequeueCount:" + msg.dequeueCount);
 
-                if(listener != null) {
-                    listener.onAccept(msg.msgBody);
-                }
+//                long time = currentTimeMillis - msg.enqueueTime*1000;
+//                Log.i(TAG, "accept: 消息接收与入队时间差值 time:" + time);
 
+//                if(currentTimeMillis - msg.enqueueTime*1000 <= TOLERATE) {
+                    if (listener != null) {
+                        listener.onAccept(msg.msgBody);
+                    }
+//                }
                 vtReceiptHandle.add(msg.receiptHandle);
             }
             //批量删除消息
@@ -160,8 +168,15 @@ public class CMQ {
 //            test.action = Msg.ACTION_USER_STOP_PLAY;//停止直播
 //            test.action = Msg.ACTION_BP_START_RECORD;//盘点开始录制
 //            test.action = Msg.ACTION_BP_STOP_RECORD;//盘点结束录制
+//            test.action = Msg.ACTION_TEST;//测试
+            test.width = 640;//测试 宽度
+            test.height = 360;//测试 高度
+//            test.width = 960;//测试 宽度
+//            test.height = 540;//测试 高度
+//            test.width = 1920;//测试 宽度
+//            test.height = 1080;//测试 高度
             test.user_id = 111;
-            test.shop_id = 292;
+            test.shop_id = 414;
             test.shop_name = "力迅上筑";
 
             msgBody = new Gson().toJson(test);
@@ -179,18 +194,6 @@ public class CMQ {
 //                vtMsgBody.add(msgBody);
 //            }
 
-//            for (String name : ShopMap.sName) {
-////            for (int i=4; i < 8; i++) {
-//
-////                String name = ShopMap.sName[i];
-////                String name = "东山雅筑商务中心";
-//                Test t = new Test();
-//                t.action = Msg.ACTION_USER_START_PLAY;
-//                t.shop_name = name;
-//
-//                msgBody = new Gson().toJson(t);
-//                vtMsgBody.add(msgBody);
-//            }
 
 
             List<String> vtMsgId = queue.batchSendMessage(vtMsgBody);

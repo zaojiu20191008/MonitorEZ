@@ -5,6 +5,8 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.graphics.Color;
+import android.graphics.Point;
+import android.graphics.drawable.GradientDrawable;
 import android.os.Bundle;
 import android.os.Handler;
 import android.support.annotation.Nullable;
@@ -12,11 +14,14 @@ import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentTransaction;
 import android.support.v7.app.AppCompatActivity;
 import android.text.TextUtils;
+import android.util.DisplayMetrics;
 import android.util.Log;
 import android.view.View;
+import android.view.ViewGroup;
 import android.view.Window;
 import android.view.WindowManager;
 import android.widget.FrameLayout;
+import android.widget.GridLayout;
 import android.widget.Toast;
 
 import com.easygo.monitor.R;
@@ -123,6 +128,8 @@ public class LiveStreamActivity extends AppCompatActivity {
     };
     private ArrayList<EZPlayerFragment> lists;
 
+    private int mScreenWidth;
+    private int mScreenHeight;
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
@@ -135,6 +142,12 @@ public class LiveStreamActivity extends AppCompatActivity {
         setContentView(R.layout.live_stream);
 
         ezPlay();
+
+
+        DisplayMetrics dm = new DisplayMetrics();
+        getWindowManager().getDefaultDisplay().getMetrics(dm);
+        mScreenWidth = dm.widthPixels;
+        mScreenHeight = dm.heightPixels;
 
 
         Log.i(TAG, "copyRecord: 开启定时任务");
@@ -387,6 +400,33 @@ public class LiveStreamActivity extends AppCompatActivity {
                     }
                 });
             }
+
+            @Override
+            public void onTest(final MsgBean msgBean) {
+                runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        String device_serial = msgBean.device_serial;
+
+                        EZPlayerFragment fragment = (EZPlayerFragment) getSupportFragmentManager().findFragmentByTag(device_serial);
+                        if(fragment == null) {
+                            Log.i(TAG, "onTest: 找不到fragment - " + device_serial);
+                            return;
+                        }
+
+                        int width = msgBean.width;
+                        int height = msgBean.height;
+
+                        FrameLayout frameLayout = (FrameLayout) findViewById(R.id.fragment_1);
+                        GridLayout.LayoutParams lp = (GridLayout.LayoutParams) frameLayout.getLayoutParams();
+                        lp.width = width;
+                        lp.height = height;
+                        frameLayout.setLayoutParams(lp);
+                        fragment.setSurfaceSize(width, height);
+                    }
+                });
+
+            }
         });
     }
 
@@ -419,7 +459,10 @@ public class LiveStreamActivity extends AppCompatActivity {
         return EZPlayerFragment;
     }
 
+    //记录正在播放的摄像头序列号
     public ArrayList<String> mPlaying = new ArrayList<>();
+    //记录正在播放的layout
+    public ArrayList<FrameLayout> mPlayingLayout = new ArrayList<>();
 
 
     public void add(MsgBean msgBean, boolean needRecord) {
@@ -489,13 +532,6 @@ public class LiveStreamActivity extends AppCompatActivity {
             containerId = index;
 
 
-//            new Handler().postDelayed(new Runnable() {
-//                @Override
-//                public void run() {
-//                    Toast.makeText(LiveStreamActivity.this, "开始录制···········", Toast.LENGTH_SHORT).show();
-//                    ezPlayerFragment.startRecord();
-//                }
-//            }, 3000);
         }
 
         Log.i(TAG, "add: 添加位置序号 --> " + index);
@@ -549,7 +585,8 @@ public class LiveStreamActivity extends AppCompatActivity {
 
         Log.i(TAG, "remove: 删除位置序号 --> " + index);
 
-        mPlaying.add(index, null);
+        mPlaying.add(index, null);//序列号置空
+//        mPlaying.remove(index);//移除
 
         mPlayingCount--;
 
@@ -637,5 +674,64 @@ public class LiveStreamActivity extends AppCompatActivity {
         stopRecord(msgBean.device_serial);
     }
 
+
+    /**
+     * 根据即将播放的数量， 计算视频窗口的大小
+     * @param count
+     * @return
+     */
+    public Point computeSurfaceSize(int count) {
+        Point size = new Point();
+        int split;
+        if(count == 1) {
+            split = 1;
+        } else if(count <= 4) {
+            split = 2;
+        } else if(count <= 9) {
+            split = 3;
+        } else {
+            split = 4;
+        }
+        size.set(mScreenWidth / split, mScreenHeight / split);
+        return size;
+    }
+
+    public void setSurfaceSize(int width, int height) {
+
+        ViewGroup.LayoutParams lp;
+        FrameLayout layout;
+
+        int size = mPlayingLayout.size();
+        for (int i = 0; i < size; i++) {
+            //布局大小
+            layout = mPlayingLayout.get(i);
+            lp = layout.getLayoutParams();
+
+            if (lp == null) {
+                lp = new ViewGroup.LayoutParams(width, height);
+            } else {
+                lp.width = width;
+                lp.height = height;
+            }
+            if (width == 0) {
+                lp.width = (int) (height * 1.1778);
+            }
+            if (height == 0) {
+                lp.height = (int) (width * 0.562);
+            }
+            layout.setLayoutParams(lp);
+
+            //视频窗口
+            String deviceSerial = mPlaying.get(i);
+            EZPlayerFragment fragment = (EZPlayerFragment) getSupportFragmentManager().findFragmentByTag(deviceSerial);
+            if (fragment == null) {
+                Log.i(TAG, "stopRecord: 找不到fragment");
+                continue;
+            }
+
+            fragment.setSurfaceSize(width, height);
+        }
+
+    }
 
 }

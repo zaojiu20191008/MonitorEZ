@@ -131,8 +131,8 @@ public class AlarmManagerUtils {
         return time;
     }
 
-//    private long interval = 10 * 60 * 1000;//触发间隔
-    private long interval = 5 * 1000;//触发间隔
+    private long interval = 10 * 60 * 1000;//触发间隔
+//    private long interval = 5 * 1000;//触发间隔
 
     public void setInterval(long interval) {
         this.interval = interval;

@@ -23,8 +23,8 @@ public class LoginPresenter extends BasePresenter<LoginModel, LoginContract.ILog
             }
 
             @Override
-            public void onFailed(String message) {
-                mView.loginFailed();
+            public void onFailed(String msg) {
+                mView.loginFailed(msg);
             }
         });
     }

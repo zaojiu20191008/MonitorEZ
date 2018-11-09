@@ -7,4 +7,7 @@ public class MsgBean {
     public int shop_id;
     public String shop_name;
     public String device_serial;
+
+    public int width;
+    public int height;
 }
