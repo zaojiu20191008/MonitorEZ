@@ -35,7 +35,7 @@ public class Msg {
     /**
      * 停止播放
      */
-    public static final String ACTION_USER_STOP_PLAY = "user_stop_play";
+    public static final String ACTION_USER_STOP_PLAY = "OUT";
 
     /**
      * 测试消息
@@ -163,10 +163,11 @@ public class Msg {
                     break;
         }
 
-        SimpleDateFormat simpleDateFormat = new SimpleDateFormat("yyyy_MM_dd_HH_mm", Locale.CHINA);
+        SimpleDateFormat simpleDateFormat = new SimpleDateFormat("yyyyMMddHHmm", Locale.CHINA);
         String timeStamp = simpleDateFormat.format(new Date());
         return getTvFilePath()
-                + user_id + "_" + shop_name + "_" + timeStamp + "_" + type + ".mp4";
+//                + user_id + "_" + shop_name + "_" + timeStamp + "_" + type + ".mp4";
+                + shop_name + "_" + timeStamp + "_" + user_id  + ".mp4";
     }
 
     public static String getTvFilePath() {

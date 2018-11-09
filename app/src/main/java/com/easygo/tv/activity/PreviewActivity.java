@@ -52,7 +52,7 @@ public class PreviewActivity extends AppCompatActivity {
 
         PreviewAdapter previewAdapter = new PreviewAdapter(this, data);
 
-        GridLayoutManager layoutManager = new GridLayoutManager(this, 4);
+        GridLayoutManager layoutManager = new GridLayoutManager(this, 9);
 //        GridLayoutManager layoutManager = new GridLayoutManager(this, 4,
 //                GridLayoutManager.HORIZONTAL, false);
 

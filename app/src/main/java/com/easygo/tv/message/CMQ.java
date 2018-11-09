@@ -164,43 +164,63 @@ public class CMQ {
 //            vtMsgBody.add(msgBody);
 
             Test test = new Test();
-            test.action = Msg.ACTION_USER_START_PLAY;//开始直播
-//            test.action = Msg.ACTION_USER_STOP_PLAY;//停止直播
+//            test.action = Msg.ACTION_USER_START_PLAY;//开始直播
+            test.action = Msg.ACTION_USER_STOP_PLAY;//停止直播
 //            test.action = Msg.ACTION_BP_START_RECORD;//盘点开始录制
 //            test.action = Msg.ACTION_BP_STOP_RECORD;//盘点结束录制
 //            test.action = Msg.ACTION_TEST;//测试
-            test.width = 640;//测试 宽度
-            test.height = 360;//测试 高度
-//            test.width = 960;//测试 宽度
-//            test.height = 540;//测试 高度
+//            test.width = 640;//测试 宽度
+//            test.height = 360;//测试 高度
+            test.width = 960;//测试 宽度
+            test.height = 540;//测试 高度
 //            test.width = 1920;//测试 宽度
 //            test.height = 1080;//测试 高度
             test.user_id = 111;
-            test.shop_id = 414;
+            test.shop_id = 324;
             test.shop_name = "力迅上筑";
 
             msgBody = new Gson().toJson(test);
-            vtMsgBody.add(msgBody);
+//            vtMsgBody.add(msgBody);
 
             //播放16个
-//            for (Map.Entry<Integer, String> entry : ShopMap.sShop.entrySet()) {
-//
-//                Test t = new Test();
-//                t.action = Msg.ACTION_USER_START_PLAY;
-////                t.action = Msg.ACTION_USER_STOP_PLAY;
-//                t.shop_id = entry.getKey();
-//
-//                msgBody = new Gson().toJson(t);
-//                vtMsgBody.add(msgBody);
-//            }
+//            int x = 5;
+            int x = 0;
+            for (Map.Entry<Integer, String> entry : ShopMap.sShop.entrySet()) {
+
+                if(x <= 0)
+                    break;
+                x--;
+
+                Test t = new Test();
+                t.action = Msg.ACTION_USER_START_PLAY;
+//                t.action = Msg.ACTION_USER_STOP_PLAY;
+                t.shop_id = entry.getKey();
+
+                msgBody = new Gson().toJson(t);
+                vtMsgBody.add(msgBody);
+            }
+
+            //停止播放
+            int j = 0;
+            for (Map.Entry<Integer, String> entry : ShopMap.sShop.entrySet()) {
+
+                if(j <= 0)
+                    break;
+
+                j--;
+                Test t = new Test();
+                t.action = Msg.ACTION_USER_STOP_PLAY;
+                t.shop_id = entry.getKey();
+
+                msgBody = new Gson().toJson(t);
+                vtMsgBody.add(msgBody);
+            }
 
 
 
             List<String> vtMsgId = queue.batchSendMessage(vtMsgBody);
             for (int i = 0; i < vtMsgBody.size(); i++)
                 System.out.println("[" + vtMsgBody.get(i) + "] sent");
-//            for (int i = 0; i < vtMsgId.size(); i++)
-//                System.out.println("msgId:" + vtMsgId.get(i));
 
 
 //            batchReceive(queue, false);

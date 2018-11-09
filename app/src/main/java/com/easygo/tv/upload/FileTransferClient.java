@@ -53,6 +53,12 @@ public class FileTransferClient implements Runnable {
         this.listener = listener;
     }
 
+    public FileTransferClient(String directory, String filePath, TransferListener listener) {
+        this.directory = directory;
+        this.filePath = filePath;
+        this.listener = listener;
+    }
+
 
     private TransferListener listener;
     public interface TransferListener {
@@ -73,8 +79,11 @@ public class FileTransferClient implements Runnable {
                 fis = new FileInputStream(file);
                 dos = new DataOutputStream(client.getOutputStream());
 
-                // 文件名和长度  
-                dos.writeUTF(file.getName());
+                // 文件名和长度
+                if(directory != null)
+                    dos.writeUTF(directory + "," + file.getName());
+                else
+                    dos.writeUTF(file.getName());
                 dos.flush();
                 dos.writeLong(file.length());
                 dos.flush();
@@ -109,6 +118,7 @@ public class FileTransferClient implements Runnable {
 
 
     private  String filePath = DataManager.getInstance().getRecodeFilePath();//todo 待定文件路径
+    private  String directory;//todo 待定文件路径
 
     @Override
     public void run() {

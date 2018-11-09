@@ -103,8 +103,8 @@ public class CopyRecord {
 
     }
 
-    public void copy(final Context context, final String recordPath) {
-        FileTransferClient runnable = new FileTransferClient(recordPath, new FileTransferClient.TransferListener() {
+    public void copy(final Context context, String typeDirectory, final String recordPath) {
+        FileTransferClient runnable = new FileTransferClient(typeDirectory, recordPath, new FileTransferClient.TransferListener() {
             @Override
             public void onTransferSuccess() {
                 Log.i(TAG, "onTransferSuccess: 清除 拷贝标记 --> " + recordPath);

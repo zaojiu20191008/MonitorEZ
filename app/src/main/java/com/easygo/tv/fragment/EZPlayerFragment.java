@@ -200,7 +200,11 @@ public class EZPlayerFragment extends Fragment implements SurfaceHolder.Callback
             }
         });
 
-        setSurfaceSize();
+        if(mWidth == 0 && mHeight == 0) {
+            setSurfaceSize();
+        } else {
+            setSurfaceSize(mWidth, mHeight);
+        }
     }
 
     /**
@@ -648,9 +652,19 @@ public class EZPlayerFragment extends Fragment implements SurfaceHolder.Callback
         }
     }
 
+    public int mWidth;
+    public int mHeight;
+
+    public void setSize(int width, int height) {
+        this.mWidth = width;
+        this.mHeight = height;
+    }
+
     public void setSurfaceSize(int width, int height) {
         EZLog.infoLog(TAG, "setSurfaceSize(width, height)");
         mEZUIPlayerView.setSurfaceSize(width, height);
+
+        setSize(width, height);
     }
 
 
