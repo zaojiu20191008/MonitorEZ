@@ -10,6 +10,7 @@ import com.easygo.monitor.R;
 public class EZOpenConstant {
     public static final String EXTRA_CAMERA_NAME = "CameraName";
     public static final String EXTRA_START_RECORD_AFTER_PLAY= "StartRecordAfterPlay";
+    public static final String EXTRA_INIT_QUALITY= "init_quality";
     public static final String EXTRA_DEVICE_SERIAL = "DeviceSerial";
     public static final String EXTRA_CAMERA_NO = "CameraNo";
     public static final String EXTRA_POSITION = "position";

@@ -153,15 +153,6 @@ public class Msg {
 
         String shop_name = msgBean.shop_name;
         int user_id = msgBean.user_id;
-        String type = "user";
-        switch(msgBean.action) {
-            case ACTION_BP_START_RECORD:
-                type = "stocktaking";
-                break;
-
-                default:
-                    break;
-        }
 
         SimpleDateFormat simpleDateFormat = new SimpleDateFormat("yyyyMMddHHmm", Locale.CHINA);
         String timeStamp = simpleDateFormat.format(new Date());
@@ -174,8 +165,28 @@ public class Msg {
         return DataManager.getInstance().getRecodeFilePath() + "TV/";
     }
 
-    public static boolean isRecordAction(MsgBean msgBean) {
+    public static String getRecordType(MsgBean msgBean) {
+        String type = "盘点";
+        switch(msgBean.action) {
+            case ACTION_BP_START_RECORD:
+                break;
+//            case ACTION_BP_START_RECORD:
+//                type = "黑名单";
+//                break;
+
+            default:
+                break;
+        }
+
+        return type;
+    }
+
+    public static boolean isPlayAction(MsgBean msgBean) {
         return ACTION_USER_START_PLAY.equals(msgBean.action);
+    }
+
+    public static boolean isRecordAction(MsgBean msgBean) {
+        return ACTION_BP_START_RECORD.equals(msgBean.action);
     }
 
 

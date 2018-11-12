@@ -26,11 +26,15 @@ android {
 //            minifyEnabled false
 //            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
             buildConfigField("String", "API_URL", "\"http://api.store.ieasygo.cn/\"")
+            buildConfigField("String", "QUEUE_NAME", "\"android-monitor\"")
+            buildConfigField("long", "STOP_PLAY_DELAY_TIME", "60000")
         }
 
         debug {
 //            buildConfigField("String", "API_URL", "\"http://api.test.ieasygo.cn/\"")
             buildConfigField("String", "API_URL", "\"http://api.dev.ieasygo.cn/\"")
+            buildConfigField("String", "QUEUE_NAME", "\"android-test\"")
+            buildConfigField("long", "STOP_PLAY_DELAY_TIME", "0")
         }
     }
 

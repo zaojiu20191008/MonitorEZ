@@ -1,18 +1,23 @@
 package com.easygo.monitor.main;
 
 import android.content.Intent;
+import android.os.Environment;
 import android.support.multidex.MultiDexApplication;
 import android.util.Log;
 
 
 import com.easygo.monitor.utils.DataManager;
 import com.easygo.monitor.view.avctivity.MainActivity;
+import com.easygo.tv.tools.CrashHandler;
 import com.ezviz.opensdk.auth.OnAuthCallBack;
 import com.videogo.openapi.EZOpenSDK;
 import com.videogo.openapi.bean.EZAccessToken;
 
 import io.realm.Realm;
 import com.easygo.monitor.R;
+
+import java.io.File;
+
 /**
  * Description:
  * Created by dingwei3
@@ -32,7 +37,39 @@ public class EZOpenApplication extends MultiDexApplication {
         mEZOpenApplication = this;
         init();
         Realm.init(this);
+
+        initErrorHandler();
+        initDir();
     }
+
+    public static File logDir;
+    public static File logFile;
+
+    /**
+     * 初始化日志目录
+     */
+    private void initDir() {
+
+        String internalStoragePath = Environment.getExternalStorageDirectory().getAbsolutePath();
+
+        logDir = new File(internalStoragePath
+                + File.separator + "zaojiu"
+                + File.separator + "log");
+
+        if (!logDir.exists()){
+            logDir.mkdirs();
+        }
+
+        logFile = new File(logDir, "logFile.txt");
+
+    }
+    private void initErrorHandler() {
+        CrashHandler handler = CrashHandler.getInstance();
+        handler.init(this);
+    }
+
+
+
 
     public void init() {
         Log.i(TAG, "init debug = " + getResources().getBoolean(R.bool.debug));

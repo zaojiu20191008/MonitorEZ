@@ -117,6 +117,21 @@ public class CopyRecord {
         cachedThreadPool.execute(runnable);
     }
 
+    public void copy(final Context context, final String recordPath) {
+        String type = getSp(context).getString(recordPath, "error");
+        FileTransferClient runnable = new FileTransferClient(type, recordPath, new FileTransferClient.TransferListener() {
+            @Override
+            public void onTransferSuccess() {
+                Log.i(TAG, "onTransferSuccess: 清除 拷贝标记 --> " + recordPath);
+                getSp(context).edit().remove(recordPath).apply();
+
+                //移除记录：正在拷贝的视频路径
+                CopyRecord.getInstance().removeCopyingPath(recordPath);
+            }
+        });
+        cachedThreadPool.execute(runnable);
+    }
+
     public SharedPreferences getSp(Context context) {
         if(sp == null) {
             sp = PreferenceManager.getDefaultSharedPreferences(context);
@@ -129,6 +144,14 @@ public class CopyRecord {
         // true 表示需要进行拷贝
         getSp(context).edit()
                 .putBoolean(recordPath, true)
+                .apply();
+    }
+
+    public void saveRecordPath(Context context, String recordPath, String type) {
+        Log.i(TAG, "saveRecordPath: 设置拷贝标记 --> " + recordPath);
+        // true 表示需要进行拷贝
+        getSp(context).edit()
+                .putString(recordPath, type)
                 .apply();
     }
 

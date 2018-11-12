@@ -135,6 +135,7 @@ public class PlayPresenter extends BaseRealmPresenter {
             Log.d(TAG, "video level is same : " + videolevel);
             return;
         }
+        Log.d(TAG, "开始设置分辨率" + "(--> " + videolevel + ") : " + deviceSerial);
         mPlayView.showLoadDialog();
         Observable observable = Observable.create(new Observable.OnSubscribe<Boolean>() {
             @Override

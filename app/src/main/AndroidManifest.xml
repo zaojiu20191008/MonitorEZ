@@ -137,6 +137,24 @@
         </activity>
 
 
+        <!--直播-->
+        <activity android:name="com.easygo.tv.activity.LiveStreamActivity"
+            android:screenOrientation="landscape"
+            android:configChanges="keyboardHidden|orientation"
+            android:theme="@style/Theme.AppCompat.Light.NoActionBar">
+        </activity>
+        <activity android:name="com.easygo.tv.activity.LiveStreamWelcome"
+            android:label="@string/title_activity_live_stream"
+            android:theme="@style/Theme.AppCompat.Light.NoActionBar">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN"/>
+                <action android:name="android.intent.action.VIEW"/>
+                <category android:name="android.intent.category.LAUNCHER"/>
+                <category android:name="android.intent.category.LEANBACK_LAUNCHER"/>
+            </intent-filter>
+
+        </activity>
+
         <!--预览-->
         <activity
             android:name="com.easygo.tv.activity.PreviewActivity"
@@ -156,23 +174,7 @@
             </intent-filter>
         </activity>
 
-        <!--直播-->
-        <activity android:name="com.easygo.tv.activity.LiveStreamActivity"
-            android:screenOrientation="landscape"
-            android:configChanges="keyboardHidden|orientation"
-            android:theme="@style/Theme.AppCompat.Light.NoActionBar">
-        </activity>
-        <activity android:name="com.easygo.tv.activity.LiveStreamWelcome"
-            android:label="@string/title_activity_live_stream"
-            android:theme="@style/Theme.AppCompat.Light.NoActionBar">
-            <intent-filter>
-                <action android:name="android.intent.action.MAIN"/>
-                <action android:name="android.intent.action.VIEW"/>
-                <category android:name="android.intent.category.LAUNCHER"/>
-                <category android:name="android.intent.category.LEANBACK_LAUNCHER"/>
-            </intent-filter>
 
-        </activity>
         <activity android:name="com.easygo.tv.mvp.base.BaseActivity"
             android:theme="@style/Theme.AppCompat.Light.NoActionBar"/>
         <activity android:name="com.easygo.tv.activity.LoginActivity"

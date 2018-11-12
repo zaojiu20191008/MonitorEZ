@@ -2,6 +2,7 @@ package com.easygo.tv.message;
 
 import android.util.Log;
 
+import com.easygo.monitor.BuildConfig;
 import com.google.gson.Gson;
 import com.qcloud.cmq.*;
 
@@ -21,7 +22,8 @@ public class CMQ {
     private final String endpoint = "http://cmq-queue-gz.api.qcloud.com";
 
     private final Queue queue;
-    private final String queueName = "android-test";
+//    private final String queueName = "android-test";
+    private final String queueName = BuildConfig.QUEUE_NAME;
 
     public final String MSG_OPEN_DOOR = "open_door";
     public final String MSG_RECORD = "recorde";
@@ -148,11 +150,14 @@ public class CMQ {
             //获得队列实例
             System.out.println("--------------- queue[android-test] ---------------");
             Queue queue = account.getQueue("android-test");
+//            System.out.println("--------------- queue[android-monitor] ---------------");
+//            Queue queue = account.getQueue("android-monitor");
 
             //设置队列属性
             System.out.println("---------------set queue attributes ...---------------");
             QueueMeta meta1 = new QueueMeta();
             meta1.pollingWaitSeconds = 20;
+//            meta1.msgRetentionSeconds = 120;
             queue.setQueueAttributes(meta1);
             System.out.println("pollingWaitSeconds=20 set");
 
@@ -176,15 +181,15 @@ public class CMQ {
 //            test.width = 1920;//测试 宽度
 //            test.height = 1080;//测试 高度
             test.user_id = 111;
-            test.shop_id = 324;
+            test.shop_id = 65;
             test.shop_name = "力迅上筑";
 
             msgBody = new Gson().toJson(test);
 //            vtMsgBody.add(msgBody);
 
             //播放16个
-//            int x = 5;
-            int x = 0;
+//            int x = 0;
+            int x = 1;
             for (Map.Entry<Integer, String> entry : ShopMap.sShop.entrySet()) {
 
                 if(x <= 0)

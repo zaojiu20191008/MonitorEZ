@@ -19,6 +19,7 @@
         android:layout_margin="8dp"
         android:layout_alignParentRight="true"
         android:layout_alignParentBottom="true"
+        android:visibility="gone"
         android:onClick="testCopy"
         android:text="测试拷贝"/>
 
