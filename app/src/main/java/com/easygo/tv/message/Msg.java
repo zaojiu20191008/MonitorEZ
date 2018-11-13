@@ -115,6 +115,7 @@ public class Msg {
 
                     msgBean.width = jsonObject.optInt("width");
                     msgBean.height = jsonObject.optInt("height");
+                    msgBean.video_level= jsonObject.optInt("video_level");
 
                     listener.onTest(msgBean);
 

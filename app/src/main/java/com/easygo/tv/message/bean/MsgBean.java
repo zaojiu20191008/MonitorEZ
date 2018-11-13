@@ -8,6 +8,9 @@ public class MsgBean {
     public String shop_name;
     public String device_serial;
 
+
+    //测试用
     public int width;
     public int height;
+    public int video_level;
 }

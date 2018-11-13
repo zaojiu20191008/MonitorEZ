@@ -4,6 +4,7 @@ import android.app.Activity;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
+import android.os.SystemClock;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
 import android.text.TextUtils;
@@ -70,7 +71,6 @@ public class EZPlayerFragment extends Fragment implements SurfaceHolder.Callback
     private EZUIPlayerView mEZUIPlayerView;
     private EZPlayer mEZPlayer;
 
-    private String mName;
     private String mDeviceSerial;
     private int mCameraNo;
     private String mCameraName;
@@ -129,7 +129,7 @@ public class EZPlayerFragment extends Fragment implements SurfaceHolder.Callback
 //                    break;
                 case MSG_WAITING_SET_QUALITY:
                     if(mIsSettingQuality) {
-                        EZLog.debugLog(TAG, "handleMessage() 等待分辨率设置完成 " + mCameraName);
+                        EZLog.debugLog(TAG, "handleMessage() 等待清晰度设置完成 " + mCameraName);
                         mHandler.sendEmptyMessageDelayed(MSG_WAITING_SET_QUALITY, 500);
                     } else {
 
@@ -410,7 +410,7 @@ public class EZPlayerFragment extends Fragment implements SurfaceHolder.Callback
             isResumePlay.set(false);
             EZLog.d(TAG, "onResume   isInitSurface = " + isInitSurface);
             if(mIsSettingQuality) {
-                EZLog.d(TAG, "onResume   等待分辨率设置完成： " + mCameraName);
+                EZLog.d(TAG, "onResume   等待清晰度设置完成： " + mCameraName);
                 mHandler.sendEmptyMessageDelayed(MSG_WAITING_SET_QUALITY, 500);
             } else {
                 startRealPlay();
@@ -519,7 +519,7 @@ public class EZPlayerFragment extends Fragment implements SurfaceHolder.Callback
             isResumePlay.set(false);
 
             if(mIsSettingQuality) {
-                EZLog.d(TAG, "surfaceCreated   等待分辨率设置完成： " + mCameraName);
+                EZLog.d(TAG, "surfaceCreated   等待清晰度设置完成： " + mCameraName);
                 mHandler.sendEmptyMessageDelayed(MSG_WAITING_SET_QUALITY, 500);
             } else {
                 startRealPlay();
@@ -559,13 +559,15 @@ public class EZPlayerFragment extends Fragment implements SurfaceHolder.Callback
 
         mVideoLevel = mSettingVideoLevel;
 
+        reStartPlay();
+
         if(isInitSurface.get() && !isResumePlay.get())
             mHandler.sendEmptyMessageDelayed(MSG_WAITING_SET_QUALITY, 500);
     }
 
     @Override
     public void handleSetQualitFailed() {
-        Log.i("test", "handleSetQualitFailed: 设置分辨率 失败！！！");
+        Log.i("test", "handleSetQualitFailed: 设置清晰度 失败！！！ --" + mCameraName);
         mSettingVideoLevel = mVideoLevel;
         isSettingQuality.set(false);
         mIsSettingQuality = false;
@@ -573,6 +575,29 @@ public class EZPlayerFragment extends Fragment implements SurfaceHolder.Callback
         if(isInitSurface.get() && !isResumePlay.get())
             mHandler.sendEmptyMessageDelayed(MSG_WAITING_SET_QUALITY, 500);
     }
+
+    /**
+     * 重启播放
+     */
+    private void reStartPlay() {
+        if (mStatus == STATUS_PLAY) {
+            // 停止播放
+            stopRealPlay();
+            //下面语句防止stopRealPlay线程还没释放surface, startRealPlay线程已经开始使用surface
+            //因此需要等待500ms
+//            SystemClock.sleep(500);
+            mHandler.postDelayed(new Runnable() {
+                @Override
+                public void run() {
+                    // 开始播放
+                    startRealPlay();
+                }
+            }, 500);
+            // 开始播放
+//            startRealPlay();
+        }
+    }
+
 
     private LoadProgressDialog mLoadProgressDialog;
 
@@ -663,17 +688,16 @@ public class EZPlayerFragment extends Fragment implements SurfaceHolder.Callback
             int videoLevel = mPlayPresenter.getOpenCameraInfo().getVideoLevel();
             Log.i("vl", "refreshUI: 当前清晰度 --> " + videoLevel);
 
-            int setLevel = mInitVideoLevel;//设置的视频分辨率
+            int setLevel = mInitVideoLevel;//设置的视频清晰度
             if(videoLevel != setLevel) {
-//                EZLog.debugLog(TAG, "开始设置分辨率 - deviceSerial: " + mDeviceSerial);
-                EZLog.debugLog(TAG, "开始设置分辨率（--> " + setLevel + "): " +mCameraName);
+                EZLog.debugLog(TAG, "开始设置清晰度（--> " + setLevel + "): " +mCameraName);
                 mSettingVideoLevel = mInitVideoLevel;
                 //清晰度 不为均衡时
                 isSettingQuality.set(true);
                 mIsSettingQuality = true;
                 mPlayPresenter.setQuality(mDeviceSerial, mCameraNo, setLevel);
             } else {
-                EZLog.debugLog(TAG, "分辨率已经为 " + videoLevel + ", deviceSerial: " + mDeviceSerial);
+                EZLog.debugLog(TAG, "清晰度已经为 " + videoLevel + ", deviceSerial: " + mDeviceSerial);
 
             }
         }
@@ -685,19 +709,23 @@ public class EZPlayerFragment extends Fragment implements SurfaceHolder.Callback
     public int mSettingVideoLevel = 1;
 
     public void changeQuality(int videoLevel) {
+        if(mIsRecording) {
+            EZLog.debugLog(TAG, "取消更改清晰度，正在录制视频: "  + mCameraName);
+            return;
+        }
         if(isSettingQuality.get()) {
-            EZLog.debugLog(TAG, "正在设置分辨率（--> " + mSettingVideoLevel + "): "  + mCameraName);
+            EZLog.debugLog(TAG, "正在设置清晰度（--> " + mSettingVideoLevel + "): "  + mCameraName);
             return;
         }
         if(videoLevel != mVideoLevel) {
-            EZLog.debugLog(TAG, "开始设置分辨率（--> " + videoLevel + "): " +mCameraName);
+            EZLog.debugLog(TAG, "开始设置清晰度（--> " + videoLevel + "): " +mCameraName);
             mSettingVideoLevel = videoLevel;
-            //清晰度 不为均衡时
+
             isSettingQuality.set(true);
             mIsSettingQuality = true;
             mPlayPresenter.setQuality(mDeviceSerial, mCameraNo, videoLevel);
         } else {
-            EZLog.debugLog(TAG, "分辨率已经为 " + videoLevel + ", deviceSerial: " + mDeviceSerial);
+            EZLog.debugLog(TAG, "清晰度已经为 " + videoLevel + ", deviceSerial: " + mDeviceSerial);
 
         }
     }

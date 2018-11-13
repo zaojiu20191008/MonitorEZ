@@ -459,6 +459,9 @@ public class LiveStreamActivity extends AppCompatActivity {
 
                         int width = msgBean.width;
                         int height = msgBean.height;
+                        int video_level = msgBean.video_level;
+
+                        fragment.changeQuality(video_level);
 
 //                        FrameLayout frameLayout = (FrameLayout) findViewById(R.id.fragment_1);
 //                        GridLayout.LayoutParams lp = (GridLayout.LayoutParams) frameLayout.getLayoutParams();
@@ -622,14 +625,9 @@ public class LiveStreamActivity extends AppCompatActivity {
 
         //屏幕已满时
         if(mPlayingCount+1 > mMaxVisibilityCount) {
-//            if (Msg.isRecordAction(msgBean)) {//如果action是播放相关，则直接返回
-//                return;
-//            }
-
             if(Msg.isRecordAction(msgBean)) {
                 needRecord = true;
             }
-
         }
 
         int quality = getQualityByPlayingCount(mPlayingCount + 1);
@@ -660,7 +658,7 @@ public class LiveStreamActivity extends AppCompatActivity {
 
 
         Point size = computeSurfaceSize(mPlayingCount + 1);
-        setSurfaceSize(size.x, 0);
+        setSurfaceSize(splitCount, size.x, 0);
 
 
 
@@ -676,12 +674,10 @@ public class LiveStreamActivity extends AppCompatActivity {
         lp.height = size.y;
         fragmentParent.setLayoutParams(lp);
 
-//        if(mPlayingCount + 1 > mMaxVisibilityCount) {
-//            mRootLayout.addView(fragmentParent);
-//        } else {
-//            mGridLayout.addView(fragmentParent);
-//        }
         mGridLayout.addView(fragmentParent);
+
+        Log.i(TAG, "add: 添加位置序号 --> " + mPlayingCount);
+        mPlaying.add(deviceSerial);
         mPlayingLayout.add(fragmentParent);
         mPlayingFragment.add(ezPlayerFragment);
 
@@ -690,18 +686,10 @@ public class LiveStreamActivity extends AppCompatActivity {
 
         int containerId;
         containerId = shop_id;
-
-
-        Log.i(TAG, "add: 添加位置序号 --> " + mPlayingCount);
-
-        mPlaying.add(deviceSerial);
-
-
         FragmentTransaction transaction = getSupportFragmentManager().beginTransaction();
         transaction.replace(containerId, ezPlayerFragment, deviceSerial).commit();
 
         mPlayingCount++;
-        mLastSplitCount = splitCount;
 
     }
 
@@ -825,6 +813,16 @@ public class LiveStreamActivity extends AppCompatActivity {
             mLastSplitCount = splitCount;
         }
 
+        //动态设置分辨率
+        int setVideoLevel = 2;//高清
+        if(mPlayingCount == 4) {
+            int size1 = mPlayingFragment.size();
+            for (int i = 0; i < size1; i++) {
+                EZPlayerFragment ezPlayerFragment = mPlayingFragment.get(i);
+                ezPlayerFragment.changeQuality(setVideoLevel);
+            }
+        }
+
     }
 
 
@@ -851,19 +849,7 @@ public class LiveStreamActivity extends AppCompatActivity {
     }
 
 
-    public void startRecord(String deviceSerial) {
-        EZPlayerFragment fragment = (EZPlayerFragment) getSupportFragmentManager().findFragmentByTag(deviceSerial);
-        if (fragment == null) {
-            Log.i(TAG, "remove: 找不到fragment");
-            return;
-        }
-
-        fragment.startRecord();
-
-    }
-
     public void startRecord(MsgBean msgBean) {
-//        startRecord(msgBean.device_serial);
 
         Log.i(TAG, "startRecord: ");
         String deviceSerial = msgBean.device_serial;
@@ -1036,7 +1022,7 @@ public class LiveStreamActivity extends AppCompatActivity {
         int quality = 1;
 
         if(playingCount <= 4) {
-            quality = 3;
+            quality = 2;
         }
 
         return quality;

@@ -9,6 +9,7 @@ public class Test {
 
     public int width;
     public int height;
+    public int video_level;
 
 
 
