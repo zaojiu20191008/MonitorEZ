@@ -44,7 +44,7 @@ public class CMQ {
 
         QueueMeta meta = new QueueMeta();
         meta.pollingWaitSeconds = 20;
-//        meta.msgRetentionSeconds = 5 * 60;
+        meta.msgRetentionSeconds = 5 * 60;
         try {
             queue.setQueueAttributes(meta);
         } catch (Exception e) {
@@ -158,7 +158,7 @@ public class CMQ {
             System.out.println("---------------set queue attributes ...---------------");
             QueueMeta meta1 = new QueueMeta();
             meta1.pollingWaitSeconds = 20;
-//            meta1.msgRetentionSeconds = 120;
+            meta1.msgRetentionSeconds = 300;
             queue.setQueueAttributes(meta1);
             System.out.println("pollingWaitSeconds=20 set");
 
@@ -170,10 +170,10 @@ public class CMQ {
 //            vtMsgBody.add(msgBody);
 
             Test test = new Test();
-            test.action = Msg.ACTION_USER_START_PLAY;//开始直播
+//            test.action = Msg.ACTION_USER_START_PLAY;//开始直播
 //            test.action = Msg.ACTION_USER_STOP_PLAY;//停止直播
 //            test.action = Msg.ACTION_BP_START_RECORD;//盘点开始录制
-//            test.action = Msg.ACTION_BP_STOP_RECORD;//盘点结束录制
+            test.action = Msg.ACTION_BP_STOP_RECORD;//盘点结束录制
 //            test.action = Msg.ACTION_TEST;//测试
 //            test.width = 640;//测试 宽度
 //            test.height = 360;//测试 高度
@@ -183,15 +183,15 @@ public class CMQ {
 //            test.height = 1080;//测试 高度
             test.video_level = 1;
             test.user_id = 111;
-            test.shop_id = 65;
+            test.shop_id = 292;
             test.shop_name = "力迅上筑";
 
             msgBody = new Gson().toJson(test);
-            vtMsgBody.add(msgBody);
+//            vtMsgBody.add(msgBody);
 
             //播放16个
-            int x = 0;
-//            int x = 3;
+//            int x = 0;
+            int x = 16;
             for (Map.Entry<Integer, String> entry : ShopMap.sShop.entrySet()) {
 
                 if(x <= 0)
@@ -249,7 +249,7 @@ public class CMQ {
 //            queue.batchDeleteMessage(vtReceiptHandle);
 //            for (int i = 0; i < vtReceiptHandle.size(); i++)
 //                System.out.println("receiptHandle:" + vtReceiptHandle.get(i) + " deleted");
-
+//            main(null);
         } catch (CMQServerException e1) {
             System.out.println("Server Exception, " + e1.toString());
 //            main(null);

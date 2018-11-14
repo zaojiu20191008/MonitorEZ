@@ -152,7 +152,7 @@ public class CopyRecord {
         // true 表示需要进行拷贝
         getSp(context).edit()
                 .putString(recordPath, type)
-                .apply();
+                .commit();
     }
 
     public void addRecordingPath (String recordPath) {

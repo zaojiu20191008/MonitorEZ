@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/frame_layout"
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content"
+    android:focusable="true"
+    android:focusableInTouchMode="true"
+    android:background="@drawable/selector_focus">
+
+    <TextView
+        android:id="@+id/cmd"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center"
+        android:layout_margin="8dp"
+        android:textSize="20sp"
+        android:background="#00000000"
+        android:textColor="@android:color/black"/>
+
+</FrameLayout>
+
+<!--<TextView xmlns:android="http://schemas.android.com/apk/res/android"-->
+    <!--android:id="@+id/cmd"-->
+    <!--android:layout_width="wrap_content"-->
+    <!--android:layout_height="wrap_content"-->
+    <!--android:layout_gravity="center"-->
+    <!--android:padding="8dp"-->
+    <!--android:textSize="18sp"-->
+    <!--android:focusable="true"-->
+    <!--android:focusableInTouchMode="true"-->
+    <!--android:background="@drawable/selector_focus"-->
+    <!--android:textColor="@android:color/black" />-->

@@ -603,45 +603,45 @@ public class EZPlayerFragment extends Fragment implements SurfaceHolder.Callback
 
     @Override
     public void showLoadDialog() {
-        if (mLoadProgressDialog == null){
-            mLoadProgressDialog = new LoadProgressDialog(getContext());
-            mLoadProgressDialog.setCancelable(false);
-            mLoadProgressDialog.setCanceledOnTouchOutside(false);
-        }
-        mLoadProgressDialog.show();
+//        if (mLoadProgressDialog == null){
+//            mLoadProgressDialog = new LoadProgressDialog(getContext());
+//            mLoadProgressDialog.setCancelable(false);
+//            mLoadProgressDialog.setCanceledOnTouchOutside(false);
+//        }
+//        mLoadProgressDialog.show();
     }
 
     @Override
     public void showLoadDialog(int stringResId) {
-        if (mLoadProgressDialog == null){
-            mLoadProgressDialog = new LoadProgressDialog(getContext());
-            mLoadProgressDialog.setCancelable(false);
-            mLoadProgressDialog.setCanceledOnTouchOutside(false);
-            mLoadProgressDialog.setMessage(stringResId);
-        }else{
-            mLoadProgressDialog.setMessage(stringResId);
-        }
-        mLoadProgressDialog.show();
+//        if (mLoadProgressDialog == null){
+//            mLoadProgressDialog = new LoadProgressDialog(getContext());
+//            mLoadProgressDialog.setCancelable(false);
+//            mLoadProgressDialog.setCanceledOnTouchOutside(false);
+//            mLoadProgressDialog.setMessage(stringResId);
+//        }else{
+//            mLoadProgressDialog.setMessage(stringResId);
+//        }
+//        mLoadProgressDialog.show();
     }
 
     @Override
     public void showLoadDialog(String string) {
-        if (mLoadProgressDialog == null){
-            mLoadProgressDialog = new LoadProgressDialog(getContext());
-            mLoadProgressDialog.setCancelable(false);
-            mLoadProgressDialog.setCanceledOnTouchOutside(false);
-            mLoadProgressDialog.setMessage(TextUtils.isEmpty(string)?"":string);
-        }else{
-            mLoadProgressDialog.setMessage(TextUtils.isEmpty(string)?"":string);
-        }
-        mLoadProgressDialog.show();
+//        if (mLoadProgressDialog == null){
+//            mLoadProgressDialog = new LoadProgressDialog(getContext());
+//            mLoadProgressDialog.setCancelable(false);
+//            mLoadProgressDialog.setCanceledOnTouchOutside(false);
+//            mLoadProgressDialog.setMessage(TextUtils.isEmpty(string)?"":string);
+//        }else{
+//            mLoadProgressDialog.setMessage(TextUtils.isEmpty(string)?"":string);
+//        }
+//        mLoadProgressDialog.show();
     }
 
     @Override
     public void dismissLoadDialog() {
-        if (mLoadProgressDialog != null && mLoadProgressDialog.isShowing()) {
-            mLoadProgressDialog.dismiss();
-        }
+//        if (mLoadProgressDialog != null && mLoadProgressDialog.isShowing()) {
+//            mLoadProgressDialog.dismiss();
+//        }
     }
 
     @Override
@@ -908,6 +908,10 @@ public class EZPlayerFragment extends Fragment implements SurfaceHolder.Callback
         if(mRecordTime >= mMaxRecordTime) {
             stopRecord();
         }
+    }
+
+    public String getCameraName() {
+        return mCameraName;
     }
 
 }

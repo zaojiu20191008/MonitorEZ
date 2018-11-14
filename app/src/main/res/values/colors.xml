@@ -82,4 +82,8 @@
     <color name="color_switch_activited">#33CC8F</color>
     <color name="color_switch_normal">#ff888888</color>
     <color name="color_switch_bg">#7c888888</color>
+
+    <!--获取焦点时背景颜色-->
+    <color name="color_focus_bg">#33000000</color>
+
 </resources>

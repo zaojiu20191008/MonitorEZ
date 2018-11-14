@@ -1,7 +1,9 @@
 package com.easygo.tv.activity;
 
+import android.app.Dialog;
 import android.content.BroadcastReceiver;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.graphics.Color;
@@ -17,6 +19,8 @@ import android.support.v7.app.AppCompatActivity;
 import android.text.TextUtils;
 import android.util.DisplayMetrics;
 import android.util.Log;
+import android.view.Gravity;
+import android.view.KeyEvent;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.Window;
@@ -29,12 +33,14 @@ import com.easygo.monitor.BuildConfig;
 import com.easygo.monitor.R;
 import com.easygo.monitor.common.EZOpenConstant;
 import com.easygo.monitor.model.EZOpenCameraInfo;
+import com.easygo.tv.Constant;
 import com.easygo.tv.fragment.EZPlayerFragment;
 import com.easygo.tv.message.CMQ;
 import com.easygo.tv.message.Msg;
 import com.easygo.tv.message.bean.MsgBean;
 import com.easygo.tv.upload.CopyRecord;
 import com.easygo.tv.util.AlarmManagerUtils;
+import com.easygo.tv.widget.CommandDialog;
 import com.videogo.openapi.bean.EZDeviceInfo;
 
 import java.io.File;
@@ -138,6 +144,7 @@ public class LiveStreamActivity extends AppCompatActivity {
     private FrameLayout mRootLayout;
 
     public static final int MSG_STOP_PLAY = 0x0000;
+    public static final int MSG_HIDE_FOCUS_FRAME = 0x0001;
 
     public Handler mHandler = new Handler() {
         @Override
@@ -149,12 +156,16 @@ public class LiveStreamActivity extends AppCompatActivity {
                     String deviceSerial = (String) obj;
                     stopPlay(deviceSerial);
                     break;
+                case MSG_HIDE_FOCUS_FRAME:
+                    hideFocusFrame();
+                    break;
 
                     default:
                         break;
             }
         }
     };
+    private CommandDialog mCommandDialog;
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
@@ -666,9 +677,13 @@ public class LiveStreamActivity extends AppCompatActivity {
 
 
         FrameLayout fragmentParent = new FrameLayout(LiveStreamActivity.this);
-        fragmentParent.setBackgroundColor(Color.parseColor("#88000000"));
+//        fragmentParent.setBackgroundColor(Color.parseColor("#88000000"));
+        fragmentParent.setBackgroundColor(Color.BLACK);
         fragmentParent.setId(shop_id);
+        fragmentParent.setFocusable(true);
+        fragmentParent.setFocusableInTouchMode(true);
         fragmentParent.setTag(deviceSerial);
+        fragmentParent.setOnFocusChangeListener(getOnFocusChangeListener());
         FrameLayout.LayoutParams lp = new FrameLayout.LayoutParams(-2, -2);
         lp.width = size.x;
         lp.height = size.y;
@@ -690,6 +705,31 @@ public class LiveStreamActivity extends AppCompatActivity {
         transaction.replace(containerId, ezPlayerFragment, deviceSerial).commit();
 
         mPlayingCount++;
+
+
+        Log.i("focus", "焦点  ------ 播放数量： " + mPlayingCount);
+        int childCount = mGridLayout.getChildCount();
+        for (int i = 0; i < childCount; i++) {
+            View childAt = mGridLayout.getChildAt(i);
+            if(childAt instanceof FrameLayout) {
+
+                FrameLayout frameLayout = (FrameLayout) childAt;
+
+                int nextFocusLeftId = getNextFocusIndex(i, DIRECTION_LEFT);
+                int nextFocusUpId = getNextFocusIndex(i, DIRECTION_UP);
+                int nextFocusRightId = getNextFocusIndex(i, DIRECTION_RIGHT);
+                int nextFocusDownId = getNextFocusIndex(i, DIRECTION_DOWN);
+
+
+                Log.i("focus", "FrameLayout id --> " + frameLayout.getId());
+                Log.i("focus", "nextFocusUpId: " + nextFocusUpId);
+                Log.i("focus", "nextFocusDownId: " + nextFocusDownId);
+                Log.i("focus", "nextFocusLeftId: " + nextFocusLeftId);
+                Log.i("focus", "nextFocusRightId: " + nextFocusRightId);
+
+            }
+        }
+
 
     }
 
@@ -1016,6 +1056,7 @@ public class LiveStreamActivity extends AppCompatActivity {
             fragment.setSurfaceSize(width, height);
         }
 
+        hideFocusFrame();
     }
 
     public int getQualityByPlayingCount(int playingCount) {
@@ -1028,4 +1069,233 @@ public class LiveStreamActivity extends AppCompatActivity {
         return quality;
     }
 
+
+    private int mFocusIndex = -1;
+    private final int DIRECTION_LEFT = 0;
+    private final int DIRECTION_UP = 1;
+    private final int DIRECTION_RIGHT = 2;
+    private final int DIRECTION_DOWN = 3;
+
+    public int getNextFocusIndex(int direction) {
+        return getNextFocusIndex(mFocusIndex, direction);
+    }
+
+    public int getNextFocusIndex(int curFocusIndex, int direction) {
+
+        if(curFocusIndex == -1) {
+            //说明 没有记录焦点
+            curFocusIndex = 0;
+            return curFocusIndex;
+        }
+
+        //当前等分数
+        int splitCount = getSplitCount(mPlayingCount);
+
+        int resultIndex = curFocusIndex;
+        //找不到时
+//        int findNot = -1;
+        int findNot = curFocusIndex;//找不到时 返回自身
+        switch(direction) {
+            case DIRECTION_LEFT:
+                resultIndex = curFocusIndex - 1 < 0? findNot: curFocusIndex - 1;
+                break;
+            case DIRECTION_UP:
+                resultIndex = curFocusIndex - splitCount < 0? findNot: curFocusIndex - splitCount;
+                break;
+            case DIRECTION_RIGHT:
+                int childCount1 = mGridLayout.getChildCount();
+                resultIndex = curFocusIndex + 1 >= childCount1? findNot: curFocusIndex + 1;
+                break;
+            case DIRECTION_DOWN:
+                int childCount2 = mGridLayout.getChildCount();
+                resultIndex = curFocusIndex + splitCount >= childCount2? findNot: curFocusIndex + splitCount;
+                break;
+        }
+        return resultIndex;
+    }
+
+    public void up(View view) {
+        move(DIRECTION_UP);
+    }
+
+    public void left(View view) {
+        move(DIRECTION_LEFT);
+    }
+
+    public void ok(View view) {
+        String content;
+        if (mFocusIndex == -1) {
+            content = "null";
+        } else {
+            content = "选中 --> " + mPlayingFragment.get(mFocusIndex).getCameraName();
+        }
+
+//        Toast.makeText(this, content, Toast.LENGTH_SHORT).show();
+
+        commandDialog().show();
+        mHandler.removeMessages(MSG_HIDE_FOCUS_FRAME);
+    }
+
+    public void right(View view) {
+        move(DIRECTION_RIGHT);
+    }
+
+    public void down(View view) {
+        move(DIRECTION_DOWN);
+    }
+
+    public int move(int direction) {
+        int nextFocusIndex = getNextFocusIndex(mFocusIndex, direction);
+        View currentFocus = mGridLayout.getFocusedChild();
+        Log.i("focus", "move: currentFocus --> " + (currentFocus != null? currentFocus.getId(): "null"));
+
+//        String cameraName = nextFocusIndex == -1 ?
+//                "null"
+//                : mPlayingFragment.get(nextFocusIndex).getCameraName();
+//        Log.i("focus", "move: " + cameraName);
+//        Toast.makeText(this, "移动到： " + cameraName, Toast.LENGTH_SHORT).show();
+
+        if(nextFocusIndex != mFocusIndex) {
+            mFocusIndex = nextFocusIndex;
+            mPlayingLayout.get(mFocusIndex).requestFocus();
+        }
+        return nextFocusIndex;
+    }
+
+
+    public View mFocusFrame;
+    public View getFocusFrame() {
+        if(mFocusFrame == null) {
+            mFocusFrame = new View(this);
+//            mFocusFrame.setBackgroundResource(R.drawable.selector_focus);
+            mFocusFrame.setBackgroundResource(R.drawable.bg_focus_frame);
+
+            FrameLayout.LayoutParams lp = new FrameLayout.LayoutParams(-2, -2);
+            mFocusFrame.setLayoutParams(lp);
+            mRootLayout.addView(mFocusFrame);
+        }
+        return mFocusFrame;
+    }
+
+    public void adjustFocusFrameSize(View v) {
+        FrameLayout frameLayout = (FrameLayout) v;
+        int[] outLocation = new int[2];
+        frameLayout.getLocationOnScreen(outLocation);
+
+        FrameLayout.LayoutParams lp = (FrameLayout.LayoutParams) getFocusFrame().getLayoutParams();
+        lp.leftMargin = outLocation[0];
+        lp.topMargin = outLocation[1];
+        lp.width = frameLayout.getWidth();
+        lp.height = frameLayout.getHeight();
+        getFocusFrame().setLayoutParams(lp);
+    }
+    public void hideFocusFrame() {
+        mFocusIndex = -1;
+        getFocusFrame().setVisibility(View.GONE);
+    }
+    public void showFocusFrame(View v){
+        adjustFocusFrameSize(v);
+        getFocusFrame().setVisibility(View.VISIBLE);
+    }
+
+
+    public class OnFocusChangeListener implements View.OnFocusChangeListener{
+
+        @Override
+        public void onFocusChange(View v, boolean hasFocus) {
+            if(hasFocus) {
+                Log.i("focus", "onFocusChange: " + v.getId());
+
+                showFocusFrame(v);
+                //一定时间后取消 焦点选中框
+                mHandler.removeMessages(MSG_HIDE_FOCUS_FRAME);
+                mHandler.sendEmptyMessageDelayed(MSG_HIDE_FOCUS_FRAME, 5000);
+
+            } else {
+
+            }
+        }
+    }
+
+    public OnFocusChangeListener getOnFocusChangeListener() {
+        if (mOnFocusChangeListener == null) {
+            mOnFocusChangeListener = new OnFocusChangeListener();
+        }
+        return mOnFocusChangeListener;
+    }
+
+    public OnFocusChangeListener mOnFocusChangeListener;
+
+
+    public Dialog commandDialog() {
+        if(mCommandDialog == null) {
+            mCommandDialog = new CommandDialog(this, R.style.FocusDialog);
+            mCommandDialog.setOnCmdListener(new CommandDialog.OnCmdListener() {
+                @Override
+                public void onCmdSelected(String cmdText) {
+                    mCommandDialog.dismiss();
+
+                    if (mFocusIndex == -1) {
+                        Log.i(TAG, "onCmdSelected: 没有选中任何一项");
+                        return;
+                    }
+                    if (Constant.CMD.REMOVE.equals(cmdText)) {
+                        stopPlayDelayed(mPlaying.get(mFocusIndex));
+                    } else if (Constant.CMD.ZOOM_IN.equals(cmdText)) {
+                        Toast.makeText(LiveStreamActivity.this, "放大功能， 开发中。。。", Toast.LENGTH_SHORT).show();
+                    }
+                }
+            });
+
+            mCommandDialog.setOnDismissListener(new DialogInterface.OnDismissListener() {
+                @Override
+                public void onDismiss(DialogInterface dialog) {
+                    mHandler.removeMessages(MSG_HIDE_FOCUS_FRAME);
+                    hideFocusFrame();
+                }
+            });
+
+            Window window = mCommandDialog.getWindow();
+            WindowManager.LayoutParams p = window.getAttributes(); // 获取对话框当前的参数值
+            p.gravity = Gravity.CENTER;
+            window.setAttributes(p);
+        }
+        mCommandDialog.resetFocus();
+        return mCommandDialog;
+    }
+
+    @Override
+    public boolean onKeyDown(int keyCode, KeyEvent event) {
+        if(mPlayingCount != 0) {
+
+            switch (keyCode) {
+                case KeyEvent.KEYCODE_DPAD_LEFT:
+
+                    move(DIRECTION_LEFT);
+                    return true;
+                case KeyEvent.KEYCODE_DPAD_UP:
+
+                    move(DIRECTION_UP);
+                    return true;
+                case KeyEvent.KEYCODE_DPAD_RIGHT:
+
+                    move(DIRECTION_RIGHT);
+                    return true;
+                case KeyEvent.KEYCODE_DPAD_DOWN:
+
+                    move(DIRECTION_DOWN);
+                    return true;
+                case KeyEvent.KEYCODE_DPAD_CENTER:
+                case KeyEvent.KEYCODE_ENTER:
+
+                    if(mFocusIndex != -1 && !commandDialog().isShowing()) {
+                        commandDialog().show();
+                        mHandler.removeMessages(MSG_HIDE_FOCUS_FRAME);
+                        return true;
+                    }
+                    break;
+            }
+        }
+        return super.onKeyDown(keyCode, event);
+    }
 }
