@@ -63,6 +63,8 @@ public class PreviewWelcome extends LoginActivity implements DeviceView, LoginCo
     @Override
     public void loginFailed(String msg) {
         showToast(msg);
+
+        mHandler.sendEmptyMessageDelayed(MSG_LOGIN_FAILED, 1000);
     }
 
     @Override

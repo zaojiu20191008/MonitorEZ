@@ -13,7 +13,6 @@ import android.os.Handler;
 import android.os.Message;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
-import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentTransaction;
 import android.support.v7.app.AppCompatActivity;
 import android.text.TextUtils;
@@ -244,7 +243,7 @@ public class LiveStreamActivity extends AppCompatActivity {
 
         Msg.parse(msg, new Msg.OnMsgListener() {
             @Override
-            public void onParseBefore(final MsgBean msgBean, final String deviceSerial) {
+            public void onInterrupt(final MsgBean msgBean, final String deviceSerial) {
                 runOnUiThread(new Runnable() {
                     @Override
                     public void run() {
@@ -257,7 +256,12 @@ public class LiveStreamActivity extends AppCompatActivity {
 //                                Log.i(TAG, "run: deviceSerial --> " + msgBean.device_serial);
 //                                break;
 //                            }
-                            if(deviceSerial.startsWith(ezOpenCameraInfo.getDeviceSerial())) {
+                            if(deviceSerial.equals(ezOpenCameraInfo.getDeviceSerial())) {
+
+                                if(ezOpenCameraInfo.getStatus() == 2) {
+                                    msgBean.interrupt = true;
+                                    break;
+                                }
                                 msgBean.shop_name = ezOpenCameraInfo.getCameraName();
                                 Log.i(TAG, "onParseBefore: shop_name --> " + msgBean.shop_name);
                                 break;
@@ -413,6 +417,11 @@ public class LiveStreamActivity extends AppCompatActivity {
 
 
     public void startPlay(MsgBean msgBean, boolean needRecord) {
+        if(msgBean.interrupt) {
+            Log.i(TAG, "startPlay: 设备不在线 --> " + msgBean.shop_name);
+            return;
+        }
+
         String deviceSerial = msgBean.device_serial;
         int shop_id = msgBean.shop_id;
         String name = msgBean.shop_name;
@@ -844,17 +853,17 @@ public class LiveStreamActivity extends AppCompatActivity {
     }
 
     public void ok(View view) {
-        String content;
-        if (mFocusIndex == -1) {
-            content = "null";
-        } else {
-            content = "选中 --> " + mPlayingFragment.get(mFocusIndex).getCameraName();
+
+        if(isFullScreen()) {//全屏显示时
+            cancelFullScreen();
+            mHandler.removeMessages(MSG_HIDE_FOCUS_FRAME);
+//            return true;
         }
-
-//        Toast.makeText(this, content, Toast.LENGTH_SHORT).show();
-
-        commandDialog().show();
-        mHandler.removeMessages(MSG_HIDE_FOCUS_FRAME);
+        else if(mFocusIndex != -1 && !commandDialog().isShowing()) {
+            commandDialog().show();
+            mHandler.removeMessages(MSG_HIDE_FOCUS_FRAME);
+//            return true;
+        }
     }
 
     public void right(View view) {
@@ -865,20 +874,18 @@ public class LiveStreamActivity extends AppCompatActivity {
         move(DIRECTION_DOWN);
     }
 
-    public int move(int direction) {
-        int nextFocusIndex = getNextFocusIndex(mFocusIndex, direction);
+    public void move(int direction) {
+        if(isFullScreen()) {
+            Log.i(TAG, "move: 当前为全屏， 直接返回");
+            return ;
+        }
 
-//        String cameraName = nextFocusIndex == -1 ?
-//                "null"
-//                : mPlayingFragment.get(nextFocusIndex).getCameraName();
-//        Log.i("focus", "move: " + cameraName);
-//        Toast.makeText(this, "移动到： " + cameraName, Toast.LENGTH_SHORT).show();
+        int nextFocusIndex = getNextFocusIndex(mFocusIndex, direction);
 
         if(nextFocusIndex != mFocusIndex) {
             mFocusIndex = nextFocusIndex;
             mPlayingLayout.get(mFocusIndex).requestFocus();
         }
-        return nextFocusIndex;
     }
 
 
@@ -961,6 +968,8 @@ public class LiveStreamActivity extends AppCompatActivity {
                         stopPlayDelayed(mPlaying.get(mFocusIndex));
                     } else if (Constant.CMD.ZOOM_IN.equals(cmdText)) {
                         Toast.makeText(LiveStreamActivity.this, "放大功能， 开发中。。。", Toast.LENGTH_SHORT).show();
+
+                        showFullScreenVideo();
                     }
                 }
             });
@@ -1005,8 +1014,12 @@ public class LiveStreamActivity extends AppCompatActivity {
                     return true;
                 case KeyEvent.KEYCODE_DPAD_CENTER:
                 case KeyEvent.KEYCODE_ENTER:
-
-                    if(mFocusIndex != -1 && !commandDialog().isShowing()) {
+                    if(isFullScreen()) {//全屏显示时
+                        cancelFullScreen();
+                        mHandler.removeMessages(MSG_HIDE_FOCUS_FRAME);
+                        return true;
+                    }
+                    else if(mFocusIndex != -1 && !commandDialog().isShowing()) {
                         commandDialog().show();
                         mHandler.removeMessages(MSG_HIDE_FOCUS_FRAME);
                         return true;
@@ -1016,4 +1029,79 @@ public class LiveStreamActivity extends AppCompatActivity {
         }
         return super.onKeyDown(keyCode, event);
     }
+
+    @Override
+    public void onBackPressed() {
+        if(isFullScreen()) {//全屏显示时
+            cancelFullScreen();
+            mHandler.removeMessages(MSG_HIDE_FOCUS_FRAME);
+            return;
+        }
+        super.onBackPressed();
+    }
+
+    private final String mPrefixTag = "full_screen_";
+    private final int mFullScreenLayoutId = 0x1111;
+    private int mFullScreenIndex = -1;
+    public boolean isFullScreen() {
+        return mFullScreenIndex != -1;
+    }
+    public boolean cancelFullScreen() {
+        if(!isFullScreen()) {
+            Log.i(TAG, "cancelFullScreen: 没有全屏显示的视频");
+            return false;
+        }
+        FragmentTransaction transaction = getSupportFragmentManager().beginTransaction();
+        EZPlayerFragment fragment = ((EZPlayerFragment) getSupportFragmentManager().findFragmentByTag(mPrefixTag + mPlaying.get(mFullScreenIndex)));
+        transaction.remove(fragment).commit();
+
+        mRootLayout.removeViewAt(mRootLayout.getChildCount()-1);
+        mFullScreenIndex = -1;
+        return true;
+    }
+
+    public void showFullScreenVideo() {
+        if(mFocusIndex == -1) {
+            Log.i(TAG, "showFullScreenVideo: 没有选中任何项进行全屏操作");
+            return;
+        }
+
+        String deviceSerial = mPlaying.get(mFocusIndex);
+        String cameraName = mPlayingFragment.get(mFocusIndex).getCameraName();
+
+
+        Bundle bundle = new Bundle();
+        bundle.putString(EZOpenConstant.EXTRA_DEVICE_SERIAL, deviceSerial);
+        bundle.putString(EZOpenConstant.EXTRA_CAMERA_NAME, cameraName);
+        bundle.putInt(EZOpenConstant.EXTRA_CAMERA_NO, 1);
+        bundle.putBoolean(EZOpenConstant.EXTRA_START_RECORD_AFTER_PLAY, false);
+        bundle.putInt(EZOpenConstant.EXTRA_INIT_QUALITY, 3);
+        final EZPlayerFragment ezPlayerFragment = createFragment(bundle);
+        ezPlayerFragment.setSize(mScreenWidth, 0);
+        ezPlayerFragment.setZOrderOnTop(true);
+
+        String tag = mPrefixTag + deviceSerial;
+
+        FrameLayout fragmentParent = new FrameLayout(LiveStreamActivity.this);
+        fragmentParent.setBackgroundColor(Color.BLACK);
+        fragmentParent.setId(mFullScreenLayoutId);
+        fragmentParent.setFocusable(true);
+        fragmentParent.setFocusableInTouchMode(true);
+        fragmentParent.setTag(tag);
+        fragmentParent.setOnFocusChangeListener(getOnFocusChangeListener());
+        FrameLayout.LayoutParams lp = new FrameLayout.LayoutParams(-2, -2);
+        lp.width = mScreenWidth;
+        lp.height = mScreenHeight;
+        fragmentParent.setLayoutParams(lp);
+
+        mRootLayout.addView(fragmentParent);
+
+
+        FragmentTransaction transaction = getSupportFragmentManager().beginTransaction();
+        transaction.replace(mFullScreenLayoutId, ezPlayerFragment, tag).commit();
+
+        mFullScreenIndex = mFocusIndex;
+    }
+
+
 }

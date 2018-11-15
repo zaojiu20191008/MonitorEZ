@@ -8,6 +8,7 @@ public class MsgBean {
     public String shop_name;
     public String device_serial;
 
+    public boolean interrupt;
 
     //测试用
     public int width;

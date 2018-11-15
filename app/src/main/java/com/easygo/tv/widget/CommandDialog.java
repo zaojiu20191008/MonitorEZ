@@ -2,10 +2,13 @@ package com.easygo.tv.widget;
 
 import android.app.Dialog;
 import android.content.Context;
+import android.content.res.Resources;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v7.widget.LinearLayoutManager;
+import android.util.DisplayMetrics;
+import android.util.TypedValue;
 import android.view.KeyEvent;
 import android.view.View;
 
@@ -36,21 +39,19 @@ public class CommandDialog extends Dialog {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.layout_focus_dialog);
+        setContentView(R.layout.layout_command_dialog);
 
         mRecycleView = ((FocusRecyclerView) findViewById(R.id.recycler_view));
 
         if(BuildConfig.BUILD_TYPE.equals("dev")) {
             findViewById(R.id.rl_keyboard).setVisibility(View.VISIBLE);
+
+            findViewById(R.id.up).setOnClickListener(mListener);
+            findViewById(R.id.center).setOnClickListener(mListener);
+            findViewById(R.id.down).setOnClickListener(mListener);
         } else {
             findViewById(R.id.rl_keyboard).setVisibility(View.GONE);
         }
-
-
-         findViewById(R.id.up).setOnClickListener(mListener);
-         findViewById(R.id.center).setOnClickListener(mListener);
-         findViewById(R.id.down).setOnClickListener(mListener);
-
 
         mData = Constant.CMD.data;
 
@@ -58,6 +59,13 @@ public class CommandDialog extends Dialog {
         mRecycleView.setLayoutManager(new LinearLayoutManager(getContext(), LinearLayoutManager.VERTICAL, false));
         mRecycleView.setAdapter(commandAdapter);
 
+        Resources resources = getContext().getResources();
+        DisplayMetrics displayMetrics = resources.getDisplayMetrics();
+
+        int noFocus = (int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_SP, resources.getDimension(R.dimen.text_cmd_no_focus), displayMetrics);
+        int hasFocus = (int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_SP, resources.getDimension(R.dimen.text_cmd_focused), displayMetrics);
+
+        commandAdapter.setTextFocusSize(noFocus, hasFocus);
         commandAdapter.setData(mData);
 
         mRecycleView.requestFocus();

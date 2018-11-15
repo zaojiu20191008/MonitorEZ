@@ -1,6 +1,8 @@
 package com.easygo.tv.activity;
 
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Message;
 
 import com.easygo.monitor.R;
 import com.easygo.monitor.view.avctivity.RootActivity;
@@ -11,7 +13,7 @@ import com.easygo.tv.mvp.model.LoginModel;
 public class LoginActivity extends RootActivity implements LoginContract.ILoginView {
 
     private static final String TAG = "LoginActivity";
-    private LoginPresenter loginPresenter;
+    protected LoginPresenter loginPresenter;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -31,6 +33,8 @@ public class LoginActivity extends RootActivity implements LoginContract.ILoginV
     protected void onDestroy() {
         super.onDestroy();
         loginPresenter.detach();
+
+        mHandler.removeCallbacksAndMessages(null);
     }
 
     @Override
@@ -52,4 +56,16 @@ public class LoginActivity extends RootActivity implements LoginContract.ILoginV
     public void serialsfailed() {
 
     }
+
+    protected final int MSG_LOGIN_FAILED = 1;
+    public Handler mHandler = new Handler(){
+        @Override
+        public void handleMessage(Message msg) {
+
+            if(msg.what == MSG_LOGIN_FAILED) {
+                loginPresenter.login();
+            }
+        }
+    };
+
 }

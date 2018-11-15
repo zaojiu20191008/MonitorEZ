@@ -153,6 +153,10 @@ public class EZUIPlayerView extends RelativeLayout {
         changeSurfaceSize(mSurfaceView, mVideoWidth, mVideoHeight);
     }
 
+    public void setZOrderOnTop(boolean onTop) {
+        mSurfaceView.setZOrderOnTop(onTop);
+    }
+
     /**
      * 动态设置播放区域大小
      * 当width等于0（height等于0）时，播放区域以height（width）为标准，宽高按视频分辨率比例播放

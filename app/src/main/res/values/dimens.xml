@@ -16,4 +16,8 @@
     <!--<dimen name="tv_player_width">960px</dimen>-->
     <!--<dimen name="tv_player_height">540px</dimen>-->
 
+    <!--命令弹框文本大小-->
+    <dimen name="text_cmd_focused">22sp</dimen>
+    <dimen name="text_cmd_no_focus">20sp</dimen>
+
 </resources>

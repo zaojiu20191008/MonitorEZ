@@ -1,5 +1,6 @@
 package com.easygo.tv.adapter;
 
+import android.graphics.Color;
 import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -22,18 +23,32 @@ public class CommandAdapter extends RecyclerView.Adapter<CommandAdapter.CmdViewH
         return new CmdViewHolder(view);
     }
 
+    private int noFocusTextSize;
+    private int hasFocusTextSize;
+    public void setTextFocusSize(int noFocus, int hasFocus) {
+        this.noFocusTextSize = noFocus;
+        this.hasFocusTextSize = hasFocus;
+    }
+
     @Override
     public void onBindViewHolder(final CmdViewHolder holder, final int position) {
         String cmdText = data.get(position);
         holder.cmd.setText(cmdText);
         holder.root.setTag(cmdText);
 
-//        holder.root.setOnClickListener(new View.OnClickListener() {
-//            @Override
-//            public void onClick(View v) {
-//                holder.root.requestFocus();
-//            }
-//        });
+        holder.root.setOnFocusChangeListener(new View.OnFocusChangeListener() {
+            @Override
+            public void onFocusChange(View v, boolean hasFocus) {
+                if(hasFocus) {
+                    holder.cmd.setTextSize(hasFocusTextSize);
+                    holder.cmd.setTextColor(Color.parseColor("#000000"));
+                } else {
+                    holder.cmd.setTextSize(noFocusTextSize);
+                    holder.cmd.setTextColor(Color.parseColor("#99000000"));
+                }
+            }
+        });
+
     }
 
 

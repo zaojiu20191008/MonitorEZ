@@ -191,7 +191,7 @@ public class CMQ {
 
             //播放16个
 //            int x = 0;
-            int x = 16;
+            int x = 2;
             for (Map.Entry<Integer, String> entry : ShopMap.sShop.entrySet()) {
 
                 if(x <= 0)

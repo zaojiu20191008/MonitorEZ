@@ -218,6 +218,10 @@ public class EZPlayerFragment extends Fragment implements SurfaceHolder.Callback
         } else {
             setSurfaceSize(mWidth, mHeight);
         }
+
+        if(isZOrderOnTop) {
+            setSurfaceSizeOnTop();
+        }
     }
 
     /**
@@ -772,6 +776,14 @@ public class EZPlayerFragment extends Fragment implements SurfaceHolder.Callback
         mEZUIPlayerView.setSurfaceSize(width, height);
 
         setSize(width, height);
+    }
+
+    private boolean isZOrderOnTop;
+    public void setZOrderOnTop(boolean onTop) {
+        this.isZOrderOnTop = onTop;
+    }
+    public void setSurfaceSizeOnTop() {
+        mEZUIPlayerView.setZOrderOnTop(isZOrderOnTop);
     }
 
 

@@ -86,7 +86,9 @@ public class Msg {
             msgBean.shop_name = shop_name;
             msgBean.device_serial = device_serial;
 
-            listener.onParseBefore(msgBean, device_serial);
+            listener.onInterrupt(msgBean, device_serial);
+
+//            listener.onParseBefore(msgBean, device_serial);
 //            listener.onParseBefore(msgBean, shop_name);
 
 
@@ -137,7 +139,7 @@ public class Msg {
 
     public interface OnMsgListener {
 
-        void onParseBefore(MsgBean msgBean, String deviceSerial);
+        void onInterrupt(MsgBean msgBean, String deviceSerial);
 
         void onStartRecord(MsgBean msgBean);
         void onStopRecord(MsgBean msgBean);
