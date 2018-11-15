@@ -967,7 +967,6 @@ public class LiveStreamActivity extends AppCompatActivity {
                     if (Constant.CMD.REMOVE.equals(cmdText)) {
                         stopPlayDelayed(mPlaying.get(mFocusIndex));
                     } else if (Constant.CMD.ZOOM_IN.equals(cmdText)) {
-                        Toast.makeText(LiveStreamActivity.this, "放大功能， 开发中。。。", Toast.LENGTH_SHORT).show();
 
                         showFullScreenVideo();
                     }

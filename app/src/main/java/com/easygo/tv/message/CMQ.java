@@ -183,7 +183,7 @@ public class CMQ {
 //            test.height = 1080;//测试 高度
             test.video_level = 1;
             test.user_id = 111;
-            test.shop_id = 292;
+            test.shop_id = 413;
             test.shop_name = "力迅上筑";
 
             msgBody = new Gson().toJson(test);

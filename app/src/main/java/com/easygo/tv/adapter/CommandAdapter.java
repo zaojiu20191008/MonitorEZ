@@ -40,10 +40,10 @@ public class CommandAdapter extends RecyclerView.Adapter<CommandAdapter.CmdViewH
             @Override
             public void onFocusChange(View v, boolean hasFocus) {
                 if(hasFocus) {
-                    holder.cmd.setTextSize(hasFocusTextSize);
+//                    holder.cmd.setTextSize(hasFocusTextSize);
                     holder.cmd.setTextColor(Color.parseColor("#000000"));
                 } else {
-                    holder.cmd.setTextSize(noFocusTextSize);
+//                    holder.cmd.setTextSize(noFocusTextSize);
                     holder.cmd.setTextColor(Color.parseColor("#99000000"));
                 }
             }

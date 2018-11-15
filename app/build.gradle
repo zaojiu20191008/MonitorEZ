@@ -44,7 +44,7 @@ android {
 //            buildConfigField("String", "API_URL", "\"http://api.test.ieasygo.cn/\"")
             buildConfigField("String", "API_URL", "\"http://api.dev.ieasygo.cn/\"")
             buildConfigField("String", "QUEUE_NAME", "\"android-test\"")
-            buildConfigField("long", "LSTOP_PLAY_DEAY_TIME", "0")
+            buildConfigField("long", "STOP_PLAY_DELAY_TIME", "0")
             buildConfigField("String", "COPY_RECORD_SERVER_IP", "\"192.168.31.195\"")
         }
     }
