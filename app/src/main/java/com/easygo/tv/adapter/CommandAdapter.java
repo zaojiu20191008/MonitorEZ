@@ -28,12 +28,12 @@ public class CommandAdapter extends RecyclerView.Adapter<CommandAdapter.CmdViewH
         holder.cmd.setText(cmdText);
         holder.root.setTag(cmdText);
 
-        holder.root.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                holder.root.requestFocus();
-            }
-        });
+//        holder.root.setOnClickListener(new View.OnClickListener() {
+//            @Override
+//            public void onClick(View v) {
+//                holder.root.requestFocus();
+//            }
+//        });
     }
 
 

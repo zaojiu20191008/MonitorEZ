@@ -7,6 +7,7 @@ package com.easygo.tv.upload;
 
 import android.util.Log;
 
+import com.easygo.monitor.BuildConfig;
 import com.easygo.monitor.utils.DataManager;
 
 import java.io.DataOutputStream;
@@ -23,7 +24,7 @@ public class FileTransferClient implements Runnable {
     public static final String TAG = "FileTransferClient";
 
 //    private static final String SERVER_IP = "127.0.0.1"; // 服务端IP
-    private static final String SERVER_IP = "192.168.31.75"; // 服务端IP
+    private static final String SERVER_IP = BuildConfig.COPY_RECORD_SERVER_IP; // 服务端IP
 //    private static final String SERVER_IP = "192.168.31.195"; // 服务端IP  （TV）
     private static final int SERVER_PORT = 6657; // 服务端端口
 

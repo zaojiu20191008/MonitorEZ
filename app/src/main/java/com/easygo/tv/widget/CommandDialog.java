@@ -9,6 +9,7 @@ import android.support.v7.widget.LinearLayoutManager;
 import android.view.KeyEvent;
 import android.view.View;
 
+import com.easygo.monitor.BuildConfig;
 import com.easygo.monitor.R;
 import com.easygo.tv.Constant;
 import com.easygo.tv.adapter.CommandAdapter;
@@ -38,6 +39,12 @@ public class CommandDialog extends Dialog {
         setContentView(R.layout.layout_focus_dialog);
 
         mRecycleView = ((FocusRecyclerView) findViewById(R.id.recycler_view));
+
+        if(BuildConfig.BUILD_TYPE.equals("dev")) {
+            findViewById(R.id.rl_keyboard).setVisibility(View.VISIBLE);
+        } else {
+            findViewById(R.id.rl_keyboard).setVisibility(View.GONE);
+        }
 
 
          findViewById(R.id.up).setOnClickListener(mListener);

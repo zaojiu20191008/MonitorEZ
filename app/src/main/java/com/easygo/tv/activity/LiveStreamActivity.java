@@ -57,85 +57,12 @@ public class LiveStreamActivity extends AppCompatActivity {
     public static OrderedRealmCollection<EZOpenCameraInfo> data;
     public static List<EZDeviceInfo> list;
 
-    public String[] serials = new String[] {
-            "182365469",
-            "182364991",
-            "182365528"
-    };
-
-    public String[] serial = new String[] {
-            "182364991",
-            "182365528",
-            "182364305",
-            "182365547",
-
-            "201104673",
-            "201104597",
-            "201104630",
-            "201104726",
-
-            "201105013",
-            "201104994",
-            "201105013",
-            "201105092",
-
-            "C16407792",
-            "C16407994",
-            "C16408133",
-            "C16958301",
-    };
-    public String[] name = new String[] {
-            "美的海岸花园海星居",
-            "美的新海岸",
-            "广大商业中心",
-            "中山星汇云锦",
-
-            "中山坦洲海伦印象",
-            "南沙海景城",
-            "海伦堡华景新城",
-            "美的高尔夫一店",
-
-            "美的君兰江山",
-            "时代廊桥",
-            "全球通大厦店",
-            "星河湾半岛",
-
-            "白云机场店",
-            "海逸锦绣蓝湾",
-            "美的御海东郡",
-            "怡翠馨",
-    };
-
     private int mPlayingCount = 0;
-//    private final int mMaxVisibilityCount = 16;
     private final int mMaxVisibilityCount = 16;
 
     //记录屏幕分割参数 （ 1， 2， 3， 4）
     private int mLastSplitCount = 1;
 
-
-    public int[] ids = new int[]{
-//            R.id.fragment_1,
-//            R.id.fragment_2,
-//            R.id.fragment_3,
-//            R.id.fragment_4,
-//
-//            R.id.fragment_5,
-//            R.id.fragment_6,
-//            R.id.fragment_7,
-//            R.id.fragment_8,
-//
-//            R.id.fragment_9,
-//            R.id.fragment_10,
-//            R.id.fragment_11,
-//            R.id.fragment_12,
-//
-//            R.id.fragment_13,
-//            R.id.fragment_14,
-//            R.id.fragment_15,
-//            R.id.fragment_16,
-
-    };
     private ArrayList<EZPlayerFragment> lists;
 
     private int mScreenWidth;
@@ -177,19 +104,32 @@ public class LiveStreamActivity extends AppCompatActivity {
                 WindowManager.LayoutParams.FLAG_FULLSCREEN);
         setContentView(R.layout.live_stream);
 
-        ezPlay();
+        initView();
+        initScreenSize();
+        startCopyTask();
 
+    }
 
+    private void initView() {
         mRootLayout = (FrameLayout) findViewById(R.id.frame_layout);
         mGridLayout = (GridLayout) findViewById(R.id.grid_layout);
 
+        if(BuildConfig.BUILD_TYPE.equals("dev")) {
+            findViewById(R.id.rl_keyboard).setVisibility(View.VISIBLE);
+        } else {
+            findViewById(R.id.rl_keyboard).setVisibility(View.GONE);
+        }
+    }
+
+    private void initScreenSize() {
         DisplayMetrics dm = new DisplayMetrics();
         getWindowManager().getDefaultDisplay().getRealMetrics(dm);
 
         mScreenWidth = dm.widthPixels;
         mScreenHeight = dm.heightPixels;
+    }
 
-
+    private void startCopyTask() {
         Log.i(TAG, "copyRecord: 开启定时任务");
         receiver = new CopyRecordReceiver();
         IntentFilter intentFilter = new IntentFilter();
@@ -202,7 +142,6 @@ public class LiveStreamActivity extends AppCompatActivity {
         intent.setAction("copy_record");
         AlarmManagerUtils.getInstance(this).createAlarmManager(intent);
         AlarmManagerUtils.getInstance(this).startIntervalTask();
-
     }
 
     @Override
@@ -278,54 +217,6 @@ public class LiveStreamActivity extends AppCompatActivity {
     }
 
 
-
-
-    private void ezPlay() {
-
-        if(data == null || data.size() == 0)
-            return;
-
-        Log.i(TAG, "ezPlay: data.size() - " + data.size());
-
-
-
-        lists = new ArrayList<>();
-//        int count = ids.length;
-        int count = 0;
-        mPlayingCount = count;
-
-        for (int i = 0; i < count; i++) {
-            EZPlayerFragment EZPlayerFragment = new EZPlayerFragment();
-
-
-            Bundle bundle = new Bundle();
-//            bundle.putString(EZOpenConstant.EXTRA_DEVICE_SERIAL, serials[i]);
-//            bundle.putString(EZOpenConstant.EXTRA_DEVICE_SERIAL, data.get(i).getDeviceSerial());
-//            bundle.putString(EZOpenConstant.EXTRA_CAMERA_NAME, data.get(i).getCameraName());
-            bundle.putString(EZOpenConstant.EXTRA_DEVICE_SERIAL, serial[i]);
-            bundle.putString(EZOpenConstant.EXTRA_CAMERA_NAME, name[i]);
-            bundle.putInt(EZOpenConstant.EXTRA_CAMERA_NO, 1);
-            EZPlayerFragment.setArguments(bundle);
-
-            lists.add(EZPlayerFragment);
-
-//            mPlaying.add(i, data.get(i).getDeviceSerial());
-            mPlaying.add(i, serial[i]);
-        }
-
-        FragmentTransaction transaction = getSupportFragmentManager().beginTransaction();
-        for (int i = 0; i < count; i++) {
-//            transaction.add(ids[i], lists.get(i), data.get(i).getDeviceSerial());
-            transaction.add(ids[i], lists.get(i), serial[i]);
-        }
-        transaction.commit();
-    }
-
-    @Override
-    public void onBackPressed() {
-        super.onBackPressed();
-    }
-
     public void startAcceptMessage() {
         new Thread(new Runnable() {
             @Override
@@ -342,12 +233,6 @@ public class LiveStreamActivity extends AppCompatActivity {
                         //解析msg
                         parseMsg(msg);
 
-//                        runOnUiThread(new Runnable() {
-//                            @Override
-//                            public void run() {
-//                                Toast.makeText(LiveStreamActivity.this,  msg, Toast.LENGTH_SHORT).show();
-//                            }
-//                        });
                     }
                 });
                 Log.i(TAG, "CMQ: 停止接收消息······················");
@@ -419,7 +304,6 @@ public class LiveStreamActivity extends AppCompatActivity {
                 runOnUiThread(new Runnable() {
                     @Override
                     public void run() {
-//                        add(msgBean, false);
 
                         if(mHandler.hasMessages(MSG_STOP_PLAY, msgBean.device_serial)) {
                             //取消延迟 停止播放消息
@@ -435,7 +319,6 @@ public class LiveStreamActivity extends AppCompatActivity {
                 runOnUiThread(new Runnable() {
                     @Override
                     public void run() {
-//                        remove(msgBean.device_serial);
 
 //                        stopPlay(msgBean.device_serial);
                         stopPlayDelayed(msgBean.device_serial);
@@ -498,8 +381,6 @@ public class LiveStreamActivity extends AppCompatActivity {
         super.onPause();
 
         CMQ.getInstance().stop();
-
-
     }
 
 
@@ -530,86 +411,6 @@ public class LiveStreamActivity extends AppCompatActivity {
     //记录正在播放的fragment
     public ArrayList<EZPlayerFragment> mPlayingFragment = new ArrayList<>();
 
-    public void add(MsgBean msgBean, boolean needRecord) {
-        String deviceSerial = msgBean.device_serial;
-        String name = msgBean.shop_name;
-        if(TextUtils.isEmpty(deviceSerial)) {
-            Toast.makeText(LiveStreamActivity.this, "参数异常： 序列号为空！", Toast.LENGTH_SHORT).show();
-            Log.i(TAG, "add: 参数异常： 序列号为空！");
-            return;
-        }
-
-        Fragment fragmentByTag = getSupportFragmentManager().findFragmentByTag(deviceSerial);
-        if(fragmentByTag != null) {
-            Log.i(TAG, "add: 已存在 " + deviceSerial);
-            return;
-        }
-
-        Log.i(TAG, "add: 添加 " + deviceSerial);
-
-        int index = findNeedAddIndex();
-
-        //屏幕已满时
-        if(index >= mMaxVisibilityCount) {
-            if (Msg.isRecordAction(msgBean)) {//如果action是播放相关，则直接返回
-                return;
-            }
-
-            needRecord = true;
-        }
-
-        Log.i(TAG, "add: 需要在播放后开始录制视频 -->" + needRecord);
-        final EZPlayerFragment ezPlayerFragment = createFragment(deviceSerial, 1, name, needRecord);
-
-        if(needRecord) {
-            String tvRecordFilePath = Msg.getTVRecordFilePath(msgBean);
-            Log.i(TAG, "add: tvRecordFilePath --> " + tvRecordFilePath);
-            ezPlayerFragment.setRecordPath(tvRecordFilePath);
-        }
-
-
-        int containerId;
-
-        if(index < mMaxVisibilityCount) {
-            //屏幕上16个未满
-            Log.i(TAG, "add: 屏幕未满16个");
-            containerId = ids[index];
-
-        }
-        else {
-            //屏幕上16个已满
-            Log.i(TAG, "add: 屏幕已满16个");
-            FrameLayout parent = (FrameLayout) findViewById(R.id.frame_layout);
-
-            FrameLayout fragmentParent = new FrameLayout(LiveStreamActivity.this);
-            fragmentParent.setBackgroundColor(Color.parseColor("#88000000"));
-            fragmentParent.setId(index);
-            fragmentParent.setTag(deviceSerial);
-            FrameLayout.LayoutParams lp = new FrameLayout.LayoutParams(-2, -2);
-            lp.width = getResources().getDimensionPixelSize(R.dimen.tv_player_width);
-            lp.height = getResources().getDimensionPixelSize(R.dimen.tv_player_height);
-            fragmentParent.setLayoutParams(lp);
-
-            parent.addView(fragmentParent);
-
-            fragmentParent.setVisibility(View.INVISIBLE);
-
-            containerId = index;
-
-
-        }
-
-        Log.i(TAG, "add: 添加位置序号 --> " + index);
-
-        mPlaying.add(index, deviceSerial);
-
-
-        FragmentTransaction transaction = getSupportFragmentManager().beginTransaction();
-        transaction.replace(containerId, ezPlayerFragment, deviceSerial).commit();
-
-        mPlayingCount++;
-
-    }
 
     public void startPlay(MsgBean msgBean, boolean needRecord) {
         String deviceSerial = msgBean.device_serial;
@@ -739,51 +540,6 @@ public class LiveStreamActivity extends AppCompatActivity {
         mGridLayout.setRowCount(splitCount);
     }
 
-    public void remove(String deviceSerial) {
-
-        EZPlayerFragment fragment = (EZPlayerFragment) getSupportFragmentManager().findFragmentByTag(deviceSerial);
-
-        if(fragment == null) {
-            Log.i(TAG, "remove: 找不到fragment");
-            return;
-        }
-
-        FragmentTransaction transaction = getSupportFragmentManager().beginTransaction();
-        fragment.release();
-        transaction.remove(fragment).commit();
-
-        int index = findRemoveIndex(deviceSerial);
-
-        if(index >= mMaxVisibilityCount) {
-            //移除的是 屏幕外的视频
-            FrameLayout parent = (FrameLayout) findViewById(R.id.frame_layout);
-            int childCount = parent.getChildCount();
-            View needRemove = null;
-            for (int i = 0; i < childCount; i++) {
-                View view = parent.getChildAt(i);
-                String tag = (String) view.getTag();
-                if(deviceSerial.equals(tag)) {
-                    needRemove = view;
-                    Log.i(TAG, "frame_layout中 remove: i --> " + i);
-                    break;
-                }
-            }
-
-            if(needRemove != null) {
-                parent.removeView(needRemove);
-            }
-
-
-        }
-
-        Log.i(TAG, "remove: 删除位置序号 --> " + index);
-
-        mPlaying.add(index, null);//序列号置空
-//        mPlaying.remove(index);//移除
-
-        mPlayingCount--;
-
-    }
 
     private final long stop_play_delay_time = BuildConfig.STOP_PLAY_DELAY_TIME;
     public void stopPlayDelayed(final String deviceSerial) {
@@ -866,29 +622,6 @@ public class LiveStreamActivity extends AppCompatActivity {
     }
 
 
-    private int findNeedAddIndex() {
-        int size = mPlaying.size();
-        for (int i = 0; i < size; i++) {
-            if(mPlaying.get(i) != null) {
-                continue;
-            }
-            return i;
-        }
-        //遍历完都有画面，找下一个位置
-        return size;
-    }
-
-    private int findRemoveIndex(String deviceSerial) {
-        int size = mPlaying.size();
-        for (int i = 0; i < size; i++) {
-            if(deviceSerial.equals(mPlaying.get(i))) {
-                return i;
-            }
-        }
-        return 0;
-    }
-
-
     public void startRecord(MsgBean msgBean) {
 
         Log.i(TAG, "startRecord: ");
@@ -898,7 +631,6 @@ public class LiveStreamActivity extends AppCompatActivity {
         if (fragment == null) {
             Log.i(TAG, "startRecord: 找不到fragment");
 
-//            add(msgBean, true);
             startPlay(msgBean, true);
 
             return;
@@ -1028,17 +760,9 @@ public class LiveStreamActivity extends AppCompatActivity {
             if (lp == null) {
                 lp = new GridLayout.LayoutParams();
             } else {
-//                lp.width = width;
-//                lp.height = height;
                 lp.width = mScreenWidth / splitCount;
                 lp.height = mScreenHeight / splitCount;
             }
-//            if (width == 0) {
-//                lp.width = (int) (height * 1.1778);
-//            }
-//            if (height == 0) {
-//                lp.height = (int) (width * 0.562);
-//            }
             int colIndex = i % splitCount;
             int rowIndex = i / splitCount;
             lp.columnSpec = GridLayout.spec(colIndex,1,GridLayout.FILL,1f);
@@ -1076,9 +800,6 @@ public class LiveStreamActivity extends AppCompatActivity {
     private final int DIRECTION_RIGHT = 2;
     private final int DIRECTION_DOWN = 3;
 
-    public int getNextFocusIndex(int direction) {
-        return getNextFocusIndex(mFocusIndex, direction);
-    }
 
     public int getNextFocusIndex(int curFocusIndex, int direction) {
 
@@ -1146,8 +867,6 @@ public class LiveStreamActivity extends AppCompatActivity {
 
     public int move(int direction) {
         int nextFocusIndex = getNextFocusIndex(mFocusIndex, direction);
-        View currentFocus = mGridLayout.getFocusedChild();
-        Log.i("focus", "move: currentFocus --> " + (currentFocus != null? currentFocus.getId(): "null"));
 
 //        String cameraName = nextFocusIndex == -1 ?
 //                "null"
@@ -1167,7 +886,6 @@ public class LiveStreamActivity extends AppCompatActivity {
     public View getFocusFrame() {
         if(mFocusFrame == null) {
             mFocusFrame = new View(this);
-//            mFocusFrame.setBackgroundResource(R.drawable.selector_focus);
             mFocusFrame.setBackgroundResource(R.drawable.bg_focus_frame);
 
             FrameLayout.LayoutParams lp = new FrameLayout.LayoutParams(-2, -2);
