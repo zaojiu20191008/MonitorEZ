@@ -20,4 +20,11 @@ public class Constant {
             Collections.addAll(data, cmds);
         }
     }
+
+    public static class Alarm {
+        /**
+         * 在播放此时间后开始获取告警信息
+         */
+        public static final long GET_ALARM_INFO_AFTER_TIME = 60 * 1000;
+    }
 }

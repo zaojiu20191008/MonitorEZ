@@ -53,6 +53,7 @@ public class EZPlayerFragment extends Fragment implements SurfaceHolder.Callback
     public final static int STATUS_PLAY = 3;
     public final static int STATUS_STOP = 4;
 
+    private long startPlayTime = -1;
 
     /**
      * 播放器状态
@@ -229,6 +230,9 @@ public class EZPlayerFragment extends Fragment implements SurfaceHolder.Callback
      */
     private void handlePlaySuccess() {
         mStatus = STATUS_PLAY;
+        if(startPlayTime == -1) {
+            startPlayTime = System.currentTimeMillis();
+        }
         refreshPlayStutsUI();
         // 声音处理
         setRealPlaySound();
@@ -926,4 +930,7 @@ public class EZPlayerFragment extends Fragment implements SurfaceHolder.Callback
         return mCameraName;
     }
 
+    public boolean hasAlreadyPlay(long time) {
+        return startPlayTime != -1 && System.currentTimeMillis() - startPlayTime >= time;
+    }
 }

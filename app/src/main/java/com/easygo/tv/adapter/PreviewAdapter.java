@@ -12,6 +12,7 @@ import android.widget.RelativeLayout;
 import android.widget.TextView;
 
 import com.bumptech.glide.Glide;
+import com.easygo.monitor.BuildConfig;
 import com.easygo.monitor.R;
 import com.easygo.monitor.common.EZOpenConstant;
 import com.easygo.monitor.model.EZOpenCameraInfo;
@@ -71,7 +72,7 @@ public class PreviewAdapter extends RecyclerView.Adapter<PreviewAdapter.PreviewV
                 .subscribe(new Action1<Long>() {
                     @Override
                     public void call(Long aLong) {
-                        if(aLong > 60) {
+                        if(!"release".equals(BuildConfig.BUILD_TYPE) && aLong > 60) {
                             subscrptions.get(position).unsubscribe();
                             Log.i("test", "call: 停止");
                             return;
@@ -105,7 +106,7 @@ public class PreviewAdapter extends RecyclerView.Adapter<PreviewAdapter.PreviewV
             return;
         }
 
-        if(System.currentTimeMillis()-start > 60000) {
+        if(!"release".equals(BuildConfig.BUILD_TYPE) && System.currentTimeMillis()-start > 60000) {
             Log.i("test", "captureCamera: captureCount  -->  停止, " + (System.currentTimeMillis()-start));
             return;
         }

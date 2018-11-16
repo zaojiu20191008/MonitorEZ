@@ -37,9 +37,12 @@ import com.easygo.tv.fragment.EZPlayerFragment;
 import com.easygo.tv.message.CMQ;
 import com.easygo.tv.message.Msg;
 import com.easygo.tv.message.bean.MsgBean;
+import com.easygo.tv.module.Message.MessageContract;
+import com.easygo.tv.module.Message.MessagePresenter;
 import com.easygo.tv.upload.CopyRecord;
 import com.easygo.tv.util.AlarmManagerUtils;
 import com.easygo.tv.widget.CommandDialog;
+import com.videogo.openapi.bean.EZAlarmInfo;
 import com.videogo.openapi.bean.EZDeviceInfo;
 
 import java.io.File;
@@ -49,7 +52,7 @@ import java.util.List;
 import io.realm.OrderedRealmCollection;
 
 
-public class LiveStreamActivity extends AppCompatActivity {
+public class LiveStreamActivity extends AppCompatActivity implements MessageContract.IMessageView {
 
     public static final String TAG = "LiveStreamActivity";
 
@@ -71,6 +74,7 @@ public class LiveStreamActivity extends AppCompatActivity {
 
     public static final int MSG_STOP_PLAY = 0x0000;
     public static final int MSG_HIDE_FOCUS_FRAME = 0x0001;
+    public static final int MSG_GET_ALARM_INFO = 0x0002;
 
     public Handler mHandler = new Handler() {
         @Override
@@ -85,6 +89,11 @@ public class LiveStreamActivity extends AppCompatActivity {
                 case MSG_HIDE_FOCUS_FRAME:
                     hideFocusFrame();
                     break;
+                case MSG_GET_ALARM_INFO:
+                    removeMessages(MSG_GET_ALARM_INFO);
+                    if(mPlayingCount != 0)
+                        mMessagePresenter.getMessage();
+                    break;
 
                     default:
                         break;
@@ -92,6 +101,8 @@ public class LiveStreamActivity extends AppCompatActivity {
         }
     };
     private CommandDialog mCommandDialog;
+
+    private MessagePresenter mMessagePresenter;
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
@@ -107,6 +118,7 @@ public class LiveStreamActivity extends AppCompatActivity {
         initScreenSize();
         startCopyTask();
 
+        initPresenter();
     }
 
     private void initView() {
@@ -141,6 +153,10 @@ public class LiveStreamActivity extends AppCompatActivity {
         intent.setAction("copy_record");
         AlarmManagerUtils.getInstance(this).createAlarmManager(intent);
         AlarmManagerUtils.getInstance(this).startIntervalTask();
+    }
+
+    public void initPresenter() {
+        this.mMessagePresenter = new MessagePresenter(this);
     }
 
     @Override
@@ -337,7 +353,8 @@ public class LiveStreamActivity extends AppCompatActivity {
                     @Override
                     public void run() {
                         Log.i(TAG, "parseMsg()# onError(): 错误信息 -- " + msg);
-                        Toast.makeText(LiveStreamActivity.this, "错误信息 -- " + msg, Toast.LENGTH_LONG).show();
+                        if(!"release".equals(BuildConfig.BUILD_TYPE))
+                            Toast.makeText(LiveStreamActivity.this, "错误信息 -- " + msg, Toast.LENGTH_LONG).show();
                     }
                 });
             }
@@ -517,29 +534,11 @@ public class LiveStreamActivity extends AppCompatActivity {
         mPlayingCount++;
 
 
-        Log.i("focus", "焦点  ------ 播放数量： " + mPlayingCount);
-        int childCount = mGridLayout.getChildCount();
-        for (int i = 0; i < childCount; i++) {
-            View childAt = mGridLayout.getChildAt(i);
-            if(childAt instanceof FrameLayout) {
-
-                FrameLayout frameLayout = (FrameLayout) childAt;
-
-                int nextFocusLeftId = getNextFocusIndex(i, DIRECTION_LEFT);
-                int nextFocusUpId = getNextFocusIndex(i, DIRECTION_UP);
-                int nextFocusRightId = getNextFocusIndex(i, DIRECTION_RIGHT);
-                int nextFocusDownId = getNextFocusIndex(i, DIRECTION_DOWN);
-
-
-                Log.i("focus", "FrameLayout id --> " + frameLayout.getId());
-                Log.i("focus", "nextFocusUpId: " + nextFocusUpId);
-                Log.i("focus", "nextFocusDownId: " + nextFocusDownId);
-                Log.i("focus", "nextFocusLeftId: " + nextFocusLeftId);
-                Log.i("focus", "nextFocusRightId: " + nextFocusRightId);
-
-            }
+        //如果没有开始获取告警信息，则开始
+        if(!isGettingAlarmInfo) {
+            mHandler.sendEmptyMessageDelayed(MSG_GET_ALARM_INFO, mStartGetAlarmInfoDelay);
+            isGettingAlarmInfo = true;
         }
-
 
     }
 
@@ -626,6 +625,11 @@ public class LiveStreamActivity extends AppCompatActivity {
                 EZPlayerFragment ezPlayerFragment = mPlayingFragment.get(i);
                 ezPlayerFragment.changeQuality(setVideoLevel);
             }
+        }
+
+        if(mPlayingCount == 0) {
+            isGettingAlarmInfo = false;
+            mHandler.removeMessages(MSG_GET_ALARM_INFO);
         }
 
     }
@@ -845,14 +849,19 @@ public class LiveStreamActivity extends AppCompatActivity {
     }
 
     public void up(View view) {
-        move(DIRECTION_UP);
+        if(mPlayingCount != 0)
+            move(DIRECTION_UP);
     }
 
     public void left(View view) {
-        move(DIRECTION_LEFT);
+        if(mPlayingCount != 0)
+            move(DIRECTION_LEFT);
     }
 
     public void ok(View view) {
+        if(mPlayingCount == 0) {
+            return;
+        }
 
         if(isFullScreen()) {//全屏显示时
             cancelFullScreen();
@@ -867,11 +876,13 @@ public class LiveStreamActivity extends AppCompatActivity {
     }
 
     public void right(View view) {
-        move(DIRECTION_RIGHT);
+        if(mPlayingCount != 0)
+            move(DIRECTION_RIGHT);
     }
 
     public void down(View view) {
-        move(DIRECTION_DOWN);
+        if(mPlayingCount != 0)
+            move(DIRECTION_DOWN);
     }
 
     public void move(int direction) {
@@ -915,6 +926,11 @@ public class LiveStreamActivity extends AppCompatActivity {
         getFocusFrame().setLayoutParams(lp);
     }
     public void hideFocusFrame() {
+        if(mFocusIndex == -1) {
+            Log.i(TAG, "hideFocusFrame: 没有选中任何一项");
+            return;
+        }
+        mPlayingLayout.get(mFocusIndex).clearFocus();
         mFocusIndex = -1;
         getFocusFrame().setVisibility(View.GONE);
     }
@@ -964,10 +980,15 @@ public class LiveStreamActivity extends AppCompatActivity {
                         Log.i(TAG, "onCmdSelected: 没有选中任何一项");
                         return;
                     }
-                    if (Constant.CMD.REMOVE.equals(cmdText)) {
+                    if (Constant.CMD.REMOVE.equals(cmdText)) {//移除
                         stopPlayDelayed(mPlaying.get(mFocusIndex));
-                    } else if (Constant.CMD.ZOOM_IN.equals(cmdText)) {
+                    } else if (Constant.CMD.ZOOM_IN.equals(cmdText)) {//全屏
 
+                        if(mPlayingCount == 1) {
+                            Toast.makeText(LiveStreamActivity.this, "正在播放的视频数量为 1，不需要全屏显示", Toast.LENGTH_SHORT).show();
+                            Log.i(TAG, "onCmdSelected: 正在播放的视频数量为 1，不需要全屏显示");
+                            return;
+                        }
                         showFullScreenVideo();
                     }
                 }
@@ -1101,6 +1122,74 @@ public class LiveStreamActivity extends AppCompatActivity {
 
         mFullScreenIndex = mFocusIndex;
     }
+
+
+    private boolean isGettingAlarmInfo = false;//是否正在获取监测告警（移动）
+    private final long mStartGetAlarmInfoDelay = 60*1000;//开始获取告警信息延迟
+    private final long mGetAlarmInfoInterval = 60*1000;//获取告警信息间隔
+//    private final long mStartGetAlarmInfoDelay = 20*1000;//开始获取告警信息延迟
+//    private final long mGetAlarmInfoInterval = 15*1000;//获取告警信息间隔
+
+    @Override
+    public void messageSuccess(List<EZAlarmInfo> list) {
+        if(mPlayingCount == 0 || list == null || list.size() == 0) {
+            Log.i(TAG, "messageSuccess: 正在播放视频数量为" +"(" + mPlayingCount + ")，或者过去一分钟没有告警信息");
+            if(mPlayingCount != 0) {
+                mHandler.sendEmptyMessageDelayed(MSG_GET_ALARM_INFO, mGetAlarmInfoInterval);
+            } else {
+                //没有侦测到移动 则移除所有播放的视频
+                for (int i = 0; i < mPlayingCount; i++) {
+                    stopPlay(mPlaying.get(i));
+                }
+            }
+
+            return;
+        }
+        Log.i(TAG, "messageSuccess: 监测过去一分钟内是否移动过...");
+
+        for (int i = 0; i < mPlayingCount; i++) {
+            EZPlayerFragment fragment = mPlayingFragment.get(i);
+            if(!fragment.hasAlreadyPlay(Constant.Alarm.GET_ALARM_INFO_AFTER_TIME)){
+                Log.i(TAG, "messageSuccess: 还没播放超过一分钟 --> " + fragment.getCameraName());
+                continue;
+            }
+
+            String deviceSerial = mPlaying.get(i);
+            boolean needStopPlay = true;
+            Log.i(TAG, "messageSuccess: 判断是否侦测到移动 --> " + fragment.getCameraName());
+            int size = list.size();
+            for (int j = 0; j < size; j++) {
+                EZAlarmInfo ezAlarmInfo = list.get(j);
+                Log.i(TAG, "messageSuccess: 告警设备名 --> " + ezAlarmInfo.getDeviceName());
+                if(deviceSerial.equals(ezAlarmInfo.getDeviceSerial())) {
+                    if (ezAlarmInfo.getAlarmType() != EZOpenConstant.AlarmType.UNKNOWN.getId()) {
+                        //监测到报警信息
+                        needStopPlay = false;
+
+                        Log.i(TAG, "messageSuccess: 侦测到移动 " + ezAlarmInfo.getDeviceName()
+                                + " -- " + ezAlarmInfo.getAlarmType());
+                    } else {
+                        Log.i(TAG, "messageSuccess: 不知名的告警信息 ");
+                    }
+                }
+            }
+            if(needStopPlay) {
+                Log.i(TAG, "messageSuccess: 移除播放 - " + fragment.getCameraName());
+                stopPlay(deviceSerial);
+            }
+        }
+
+        if(mPlayingCount != 0) {
+            mHandler.sendEmptyMessageDelayed(MSG_GET_ALARM_INFO, mGetAlarmInfoInterval);
+        }
+
+    }
+
+    @Override
+    public void onError() {
+
+    }
+
 
 
 }
