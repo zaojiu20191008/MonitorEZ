@@ -149,10 +149,10 @@ public class CMQ {
             Account account = new Account(endpoint, secretId, secretKey);
 
             //获得队列实例
-            System.out.println("--------------- queue[android-test] ---------------");
-            Queue queue = account.getQueue("android-test");
-//            System.out.println("--------------- queue[android-monitor] ---------------");
-//            Queue queue = account.getQueue("android-monitor");
+//            System.out.println("--------------- queue[android-test] ---------------");
+//            Queue queue = account.getQueue("android-test");
+            System.out.println("--------------- queue[android-monitor] ---------------");
+            Queue queue = account.getQueue("android-monitor");
 
             //设置队列属性
             System.out.println("---------------set queue attributes ...---------------");
@@ -170,8 +170,8 @@ public class CMQ {
 //            vtMsgBody.add(msgBody);
 
             Test test = new Test();
-            test.action = Msg.ACTION_USER_START_PLAY;//开始直播
-//            test.action = Msg.ACTION_USER_STOP_PLAY;//停止直播
+//            test.action = Msg.ACTION_USER_START_PLAY;//开始直播
+            test.action = Msg.ACTION_USER_STOP_PLAY;//停止直播
 //            test.action = Msg.ACTION_BP_START_RECORD;//盘点开始录制
 //            test.action = Msg.ACTION_BP_STOP_RECORD;//盘点结束录制
 //            test.action = Msg.ACTION_TEST;//测试
@@ -183,7 +183,7 @@ public class CMQ {
 //            test.height = 1080;//测试 高度
             test.video_level = 1;
             test.user_id = 111;
-            test.shop_id = 343;
+            test.shop_id = 65;
             test.shop_name = "力迅上筑";
 
             msgBody = new Gson().toJson(test);
@@ -191,7 +191,7 @@ public class CMQ {
 
             //播放16个
             int x = 0;
-//            int x = 2;
+//            int x = 4;
             for (Map.Entry<Integer, String> entry : ShopMap.sShop.entrySet()) {
 
                 if(x <= 0)
@@ -230,7 +230,7 @@ public class CMQ {
                 System.out.println("[" + vtMsgBody.get(i) + "] sent");
 
 
-            batchReceive(queue, false);
+//            batchReceive(queue, false);
 //            batchReceive(queue, true);
 
             //批量接收消息

@@ -85,5 +85,6 @@
 
     <!--获取焦点时背景颜色-->
     <color name="color_focus_bg">#33000000</color>
+    <color name="color_cover_focus_bg">#7f000000</color>
 
 </resources>

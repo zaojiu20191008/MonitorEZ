@@ -28,7 +28,8 @@ public class MessagePresenter extends BasePresenter{
     /**
      * 时间区间为起始时间倒推 1分钟
      */
-    private long Interval_Time = 120*1000;
+//    private long Interval_Time = 120*1000;
+    private long Interval_Time = 90*1000;
     private MessageContract.IMessageView mView;
     private long mEndTime = 0;
     private Calendar mStartCalendar;

@@ -9,6 +9,7 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.text.SimpleDateFormat;
+import java.util.Calendar;
 import java.util.Date;
 import java.util.Locale;
 
@@ -192,6 +193,22 @@ public class Msg {
         return ACTION_BP_START_RECORD.equals(msgBean.action);
     }
 
+    public static boolean isNeedRecord() {
+
+        //是否在 晚上10点到早上9点之间
+        return isDuringTime(22, 0, 9, 0);
+    }
+
+    public static boolean isDuringTime(int startHour, int startMinute, int endHour, int endMinute) {
+        Calendar cal = Calendar.getInstance();// 当前日期
+        int hour = cal.get(Calendar.HOUR_OF_DAY);// 获取小时
+        int minute = cal.get(Calendar.MINUTE);// 获取分钟
+        int minuteOfDay = hour * 60 + minute;// 从0:00分开是到目前为止的分钟数
+        final int start = startHour * 60 + startMinute;// 起始时间 的分钟数
+        final int end = endHour * 60 + endMinute;// 结束时间 的分钟数
+
+        return minuteOfDay >= start && minuteOfDay <= end;
+    }
 
 
 }
