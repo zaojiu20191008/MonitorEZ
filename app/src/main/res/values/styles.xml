@@ -93,7 +93,7 @@
     </style>
 
 
-
+    <!--命令弹框-->
     <style name="FocusDialog" parent="@android:style/Theme.Holo.Light.Dialog">
         <!-- 边框 -->
         <item name="android:windowFrame">@null</item>
@@ -105,5 +105,19 @@
         <item name="android:windowBackground">@android:color/transparent</item>
         <item name="android:background">@drawable/bg_command_dialog</item>
         <item name="android:backgroundDimEnabled">true</item>
+    </style>
+
+    <!--消息弹框-->
+    <style name="TipMessageDialog" parent="@android:style/Theme.Holo.Light.Dialog">
+        <!-- 边框 -->
+        <item name="android:windowFrame">@null</item>
+        <item name="android:windowIsFloating">true</item>
+        <item name="android:windowIsTranslucent">true</item>
+        <item name="android:windowNoTitle">true</item>
+        <!-- 背景模糊 -->
+        <item name="android:windowContentOverlay">@null</item>
+        <item name="android:windowBackground">@android:color/transparent</item>
+        <item name="android:background">@android:color/transparent</item>
+        <item name="android:backgroundDimEnabled">false</item>
     </style>
 </resources>

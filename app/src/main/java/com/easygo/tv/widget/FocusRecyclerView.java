@@ -22,9 +22,17 @@ public class FocusRecyclerView extends RecyclerView {
         super(context, attrs, defStyle);
     }
 
+    private boolean needControlFocus = true;
+    public void setNeedControlFocus(boolean needControlFocus) {
+        this.needControlFocus = needControlFocus;
+    }
+
     @Override
     public boolean dispatchKeyEvent(KeyEvent event) {
         boolean result = super.dispatchKeyEvent(event);
+        if(!needControlFocus) {
+            return result;
+        }
         View focusView = this.getFocusedChild();
 
         if (focusView == null) {

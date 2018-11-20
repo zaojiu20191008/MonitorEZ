@@ -20,7 +20,7 @@ public class AlarmManagerUtils {
     public static AlarmManager am;
     public static PendingIntent pendingIntent;
     //
-    private AlarmManagerUtils(Context aContext) {
+    public AlarmManagerUtils(Context aContext) {
         this.context = aContext;
     }
 

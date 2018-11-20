@@ -31,6 +31,7 @@ import android.widget.Toast;
 import com.easygo.monitor.BuildConfig;
 import com.easygo.monitor.R;
 import com.easygo.monitor.common.EZOpenConstant;
+import com.easygo.monitor.main.EZOpenApplication;
 import com.easygo.monitor.model.EZOpenCameraInfo;
 import com.easygo.tv.Constant;
 import com.easygo.tv.fragment.EZPlayerFragment;
@@ -39,9 +40,15 @@ import com.easygo.tv.message.Msg;
 import com.easygo.tv.message.bean.MsgBean;
 import com.easygo.tv.module.Message.MessageContract;
 import com.easygo.tv.module.Message.MessagePresenter;
+import com.easygo.tv.module.login.LoginContract;
+import com.easygo.tv.module.login.LoginPresenter;
+import com.easygo.tv.mvp.model.LoginModel;
 import com.easygo.tv.upload.CopyRecord;
 import com.easygo.tv.util.AlarmManagerUtils;
 import com.easygo.tv.widget.CommandDialog;
+import com.easygo.tv.widget.TipMessageBean;
+import com.easygo.tv.widget.TipMessageDialog;
+import com.videogo.openapi.EZOpenSDK;
 import com.videogo.openapi.bean.EZAlarmInfo;
 import com.videogo.openapi.bean.EZDeviceInfo;
 
@@ -52,7 +59,7 @@ import java.util.List;
 import io.realm.OrderedRealmCollection;
 
 
-public class LiveStreamActivity extends AppCompatActivity implements MessageContract.IMessageView {
+public class LiveStreamActivity extends AppCompatActivity implements MessageContract.IMessageView, LoginContract.ILoginView {
 
     public static final String TAG = "LiveStreamActivity";
 
@@ -103,6 +110,8 @@ public class LiveStreamActivity extends AppCompatActivity implements MessageCont
     private CommandDialog mCommandDialog;
 
     private MessagePresenter mMessagePresenter;
+    private LoginPresenter mLoginPresenter;
+    private AlarmManagerUtils getTokenAlarmMgrUtils;
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
@@ -117,6 +126,7 @@ public class LiveStreamActivity extends AppCompatActivity implements MessageCont
         initView();
         initScreenSize();
         startCopyTask();
+        startGetTokenTask();
 
         initPresenter();
     }
@@ -155,13 +165,35 @@ public class LiveStreamActivity extends AppCompatActivity implements MessageCont
         AlarmManagerUtils.getInstance(this).startIntervalTask();
     }
 
+    private void startGetTokenTask() {
+        Log.i(TAG, "startGetTokenTask: 开启定时任务");
+        getTokenReceiver = new GetTokenReceiver();
+        IntentFilter intentFilter = new IntentFilter();
+        intentFilter.addAction("get_token");
+        registerReceiver(getTokenReceiver, intentFilter);
+
+        //开启定时任务 定时检查tv目录的文件 并传输
+
+        Intent intent = new Intent();
+        intent.setAction("get_token");
+        getTokenAlarmMgrUtils = new AlarmManagerUtils(this);
+        getTokenAlarmMgrUtils.createAlarmManager(intent);
+        getTokenAlarmMgrUtils.setInterval(3 * 24 * 60 * 60 * 1000);
+//        getTokenAlarmMgrUtils.setInterval(15 * 1000);
+        getTokenAlarmMgrUtils.startIntervalTask();
+    }
+
     public void initPresenter() {
         this.mMessagePresenter = new MessagePresenter(this);
+        this.mLoginPresenter = new LoginPresenter();
+        mLoginPresenter.attach(new LoginModel(), this);
     }
 
     @Override
     protected void onDestroy() {
         super.onDestroy();
+
+        mLoginPresenter.detach();
         unregisterReceiver(receiver);
 
         mHandler.removeCallbacksAndMessages(null);
@@ -169,6 +201,34 @@ public class LiveStreamActivity extends AppCompatActivity implements MessageCont
     }
 
     public CopyRecordReceiver receiver = new CopyRecordReceiver();
+    public GetTokenReceiver getTokenReceiver = new GetTokenReceiver();
+
+    @Override
+    public void loginSucces(String token) {
+        Log.i(TAG, "loginSucces: token -- " + token);
+        EZOpenSDK.setAccessToken(token);
+    }
+
+    @Override
+    public void loginFailed(String msg) {
+        Toast.makeText(EZOpenApplication.mEZOpenApplication, "重新获取登录授权信息...", Toast.LENGTH_SHORT).show();
+        mHandler.postDelayed(new Runnable() {
+            @Override
+            public void run() {
+                mLoginPresenter.login();
+            }
+        }, 1000);
+    }
+
+    @Override
+    public void serialsSuccess() {
+
+    }
+
+    @Override
+    public void serialsfailed() {
+
+    }
 
     public class CopyRecordReceiver extends BroadcastReceiver {
 
@@ -228,6 +288,22 @@ public class LiveStreamActivity extends AppCompatActivity implements MessageCont
                     file.delete();
                 }
             }
+        }
+    }
+
+    public class GetTokenReceiver extends BroadcastReceiver {
+
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            //设置token
+
+            Log.i(TAG, "onReceive: get_token 定时任务执行中。。。");
+
+            Toast.makeText(context, "获取登录授权信息中...", Toast.LENGTH_SHORT).show();
+            mLoginPresenter.login();
+
+            //高版本重复设置闹钟达到低版本中setRepeating相同效果
+            getTokenAlarmMgrUtils.startIntervalTask();
         }
     }
 
@@ -329,7 +405,14 @@ public class LiveStreamActivity extends AppCompatActivity implements MessageCont
                             //取消延迟 停止播放消息
                             mHandler.removeMessages(MSG_STOP_PLAY, msgBean.device_serial);
                         }
-                        startPlay(msgBean, false);
+                        boolean needRecord = false;
+                        if(!TextUtils.isEmpty(msgBean.black_list_name)) {
+                            if(Msg.isNeedRecord()) {//晚上10点到早上9点 需要录制
+                                needRecord = true;
+                            }
+                        }
+                        startPlay(msgBean, needRecord);
+
                     }
                 });
             }
@@ -345,6 +428,16 @@ public class LiveStreamActivity extends AppCompatActivity implements MessageCont
                     }
                 });
 
+            }
+
+            @Override
+            public void onPaySuccess(final MsgBean msgBean) {
+                runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        showTip(msgBean);
+                    }
+                });
             }
 
             @Override
@@ -456,6 +549,11 @@ public class LiveStreamActivity extends AppCompatActivity implements MessageCont
             }
 
             return;
+        }
+
+        if(!TextUtils.isEmpty(msgBean.black_list_name)) {
+            //可疑人员
+            showTip(msgBean);
         }
 
         Log.i(TAG, "startPlay: 添加 " + deviceSerial);
@@ -630,6 +728,14 @@ public class LiveStreamActivity extends AppCompatActivity implements MessageCont
         if(mPlayingCount == 0) {
             isGettingAlarmInfo = false;
             mHandler.removeMessages(MSG_GET_ALARM_INFO);
+        }
+
+        //移除支付成功消息 和 可疑人员消息
+        if(mTipMessageDialog != null) {
+            if (tipMessageDialog().containMsg(deviceSerial)) {
+                //开始 移除消息
+                tipMessageDialog().removeMsg(deviceSerial);
+            }
         }
 
     }
@@ -930,6 +1036,10 @@ public class LiveStreamActivity extends AppCompatActivity implements MessageCont
             Log.i(TAG, "hideFocusFrame: 没有选中任何一项");
             return;
         }
+        if(mPlayingCount == 0) {
+            Log.i(TAG, "hideFocusFrame: 播放数量为0");
+            return;
+        }
         mPlayingLayout.get(mFocusIndex).clearFocus();
         mFocusIndex = -1;
         getFocusFrame().setVisibility(View.GONE);
@@ -1190,6 +1300,49 @@ public class LiveStreamActivity extends AppCompatActivity implements MessageCont
 
     }
 
+    private TipMessageDialog mTipMessageDialog;
+    private TipMessageDialog tipMessageDialog() {
+        if(mTipMessageDialog == null) {
+            mTipMessageDialog = new TipMessageDialog(this, R.style.TipMessageDialog);
+
+            Window window = mTipMessageDialog.getWindow();
+            WindowManager.LayoutParams p = window.getAttributes(); // 获取对话框当前的参数值
+            p.gravity = Gravity.END | Gravity.CENTER_VERTICAL;
+            window.setAttributes(p);
+        }
+        mTipMessageDialog.resetFocus();
+        return mTipMessageDialog;
+    }
+
+
+    public void showTip(MsgBean msgBean) {
+
+        if(commandDialog().isShowing()) {
+            commandDialog().dismiss();
+        }
+        int type = 0;
+        TipMessageBean tipMessageBean = new TipMessageBean();
+        tipMessageBean.deviceSerial = msgBean.device_serial;
+        if(Msg.ACTION_USER_START_PLAY.equals(msgBean.action)) {
+            //可疑人员
+            tipMessageBean.type = TipMessageBean.TYPE_BLACK_LIST;
+            tipMessageBean.blackListName = msgBean.black_list_name;
+        } else {
+            tipMessageBean.type = TipMessageBean.TYPE_PAY_SUCCESS;
+            tipMessageBean.paySuccessCount = msgBean.pay_success_count;
+        }
+
+        TipMessageDialog tipMessageDialog = tipMessageDialog();
+        tipMessageDialog.addData(tipMessageBean);
+        mHandler.postDelayed(new Runnable() {
+            @Override
+            public void run() {
+                tipMessageDialog().resetFocus();
+            }
+        }, 500);
+
+        tipMessageDialog.show();
+    }
 
 
 }

@@ -16,7 +16,7 @@
         android:layout_margin="8dp"
         android:textSize="20sp"
         android:background="#00000000"
-        android:textColor="#99000000"/>
+        android:textColor="@color/color_text_no_focus"/>
 
 </FrameLayout>
 

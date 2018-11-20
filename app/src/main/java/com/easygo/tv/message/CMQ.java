@@ -170,10 +170,11 @@ public class CMQ {
 //            vtMsgBody.add(msgBody);
 
             Test test = new Test();
-//            test.action = Msg.ACTION_USER_START_PLAY;//开始直播
-            test.action = Msg.ACTION_USER_STOP_PLAY;//停止直播
+            test.action = Msg.ACTION_USER_START_PLAY;//开始直播
+//            test.action = Msg.ACTION_USER_STOP_PLAY;//停止直播
 //            test.action = Msg.ACTION_BP_START_RECORD;//盘点开始录制
 //            test.action = Msg.ACTION_BP_STOP_RECORD;//盘点结束录制
+//            test.action = Msg.ACTION_PAY_SUCCESS;//支付成功
 //            test.action = Msg.ACTION_TEST;//测试
 //            test.width = 640;//测试 宽度
 //            test.height = 360;//测试 高度
@@ -183,8 +184,10 @@ public class CMQ {
 //            test.height = 1080;//测试 高度
             test.video_level = 1;
             test.user_id = 111;
-            test.shop_id = 65;
+            test.shop_id = 433;
             test.shop_name = "力迅上筑";
+            test.black_list_name = "可疑人员2";
+            test.pay_success_count = 5;
 
             msgBody = new Gson().toJson(test);
             vtMsgBody.add(msgBody);

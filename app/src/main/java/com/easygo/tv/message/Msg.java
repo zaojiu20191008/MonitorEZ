@@ -39,6 +39,11 @@ public class Msg {
     public static final String ACTION_USER_STOP_PLAY = "OUT";
 
     /**
+     * 支付成功
+     */
+    public static final String ACTION_PAY_SUCCESS = "pay_success";
+
+    /**
      * 测试消息
      */
     public static final String ACTION_TEST = "test";
@@ -58,6 +63,15 @@ public class Msg {
      * 门店名称
      */
     public static final String KEY_SHOP_NAME = "shop_name";
+    /**
+     * 支付成功数量
+     */
+    public static final String KEY_PAY_SUCCESS_COUNT = "pay_success_count";
+    /**
+     * 可疑人员 昵称
+     */
+    public static final String KEY_BLACK_LIST_NAME = "black_list_name";
+
 
 
     public static void parse(String msg, OnMsgListener listener) {
@@ -106,12 +120,19 @@ public class Msg {
                     break;
                 case ACTION_USER_START_PLAY:
 
+                    msgBean.black_list_name = jsonObject.optString(KEY_BLACK_LIST_NAME);
                     listener.onStartPlay(msgBean);
 
                     break;
                 case ACTION_USER_STOP_PLAY:
 
                     listener.onStopPlay(msgBean);
+
+                    break;
+                case ACTION_PAY_SUCCESS:
+
+                    msgBean.pay_success_count = jsonObject.optInt(KEY_PAY_SUCCESS_COUNT);
+                    listener.onPaySuccess(msgBean);
 
                     break;
                 case ACTION_TEST:
@@ -147,6 +168,7 @@ public class Msg {
 
         void onStartPlay(MsgBean msgBean);
         void onStopPlay(MsgBean msgBean);
+        void onPaySuccess(MsgBean msgBean);
 
         void onError(String msg);
         void onTest(MsgBean msgBean);
@@ -174,9 +196,9 @@ public class Msg {
         switch(msgBean.action) {
             case ACTION_BP_START_RECORD:
                 break;
-//            case ACTION_BP_START_RECORD:
-//                type = "黑名单";
-//                break;
+            case ACTION_USER_START_PLAY:
+                type = "黑名单";
+                break;
 
             default:
                 break;
