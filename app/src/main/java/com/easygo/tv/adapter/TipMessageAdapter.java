@@ -1,6 +1,5 @@
 package com.easygo.tv.adapter;
 
-import android.graphics.Color;
 import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -55,14 +54,17 @@ public class TipMessageAdapter extends RecyclerView.Adapter {
         switch (tipMessageBean.type) {
             case TipMessageBean.TYPE_PAY_SUCCESS:
                 final PaySuccessViewHolder paySuccessViewHolder = (PaySuccessViewHolder) holder;
+                paySuccessViewHolder.shop.setText(tipMessageBean.shop);
                 paySuccessViewHolder.title.setText("有" + tipMessageBean.paySuccessCount + "个商品支付成功");
                 paySuccessViewHolder.root.setTag(position);
                 paySuccessViewHolder.root.setOnFocusChangeListener(new View.OnFocusChangeListener() {
                     @Override
                     public void onFocusChange(View v, boolean hasFocus) {
                         if(hasFocus) {
+                            paySuccessViewHolder.shop.setTextColor(has_focus);
                             paySuccessViewHolder.title.setTextColor(has_focus);
                         } else {
+                            paySuccessViewHolder.shop.setTextColor(no_focus);
                             paySuccessViewHolder.title.setTextColor(no_focus);
                         }
                     }
@@ -70,7 +72,7 @@ public class TipMessageAdapter extends RecyclerView.Adapter {
                 break;
             case TipMessageBean.TYPE_BLACK_LIST:
                 final BlackListViewHolder blackListViewHolder = (BlackListViewHolder) holder;
-                blackListViewHolder.title.setText("可疑用户：" + tipMessageBean.blackListName + " 进店");
+                blackListViewHolder.title.setText("可疑人员：" + tipMessageBean.nick_name + " 进店");
                 blackListViewHolder.root.setTag(position);
                 blackListViewHolder.root.setOnFocusChangeListener(new View.OnFocusChangeListener() {
                     @Override
@@ -124,7 +126,6 @@ public class TipMessageAdapter extends RecyclerView.Adapter {
                 tipMessageBean = data.get(i);
                 if(deviceSerial.equals(tipMessageBean.deviceSerial)) {
                     remove.add(i);
-                    break;
                 }
             }
 
@@ -166,12 +167,14 @@ public class TipMessageAdapter extends RecyclerView.Adapter {
     static class PaySuccessViewHolder extends RecyclerView.ViewHolder {
 
         private final LinearLayout root;
+        private final TextView shop;
         private final TextView title;
 
         PaySuccessViewHolder(View itemView) {
             super(itemView);
 
             root = ((LinearLayout) itemView.findViewById(R.id.root));
+            shop = ((TextView) itemView.findViewById(R.id.shop));
             title = ((TextView) itemView.findViewById(R.id.title));
 
         }

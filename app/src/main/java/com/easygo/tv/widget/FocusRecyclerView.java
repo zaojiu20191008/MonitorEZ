@@ -29,10 +29,10 @@ public class FocusRecyclerView extends RecyclerView {
 
     @Override
     public boolean dispatchKeyEvent(KeyEvent event) {
-        boolean result = super.dispatchKeyEvent(event);
         if(!needControlFocus) {
-            return result;
+            return false;
         }
+        boolean result = super.dispatchKeyEvent(event);
         View focusView = this.getFocusedChild();
 
         if (focusView == null) {

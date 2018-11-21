@@ -10,6 +10,18 @@
     android:focusableInTouchMode="true">
 
     <TextView
+        android:id="@+id/shop"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="力迅上筑"
+        android:textSize="20sp"
+        android:textColor="@color/color_text_no_focus"
+        android:layout_marginTop="5dp"
+        android:layout_marginStart="5dp"
+        android:layout_marginEnd="5dp"
+        />
+
+    <TextView
         android:id="@+id/title"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"

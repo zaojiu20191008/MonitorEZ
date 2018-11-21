@@ -50,8 +50,4 @@ public class LoginModel implements LoginContract.ILoginModel {
 
     }
 
-    @Override
-    public void getSerials(RequestListener listener) {
-
-    }
 }

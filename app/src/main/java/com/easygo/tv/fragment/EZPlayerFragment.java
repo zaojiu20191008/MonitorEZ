@@ -1,6 +1,7 @@
 package com.easygo.tv.fragment;
 
 import android.app.Activity;
+import android.graphics.Color;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
@@ -28,8 +29,11 @@ import com.easygo.monitor.utils.EZLog;
 import com.easygo.monitor.utils.EZOpenUtils;
 import com.easygo.monitor.utils.ToastUtls;
 import com.easygo.monitor.view.PlayView;
+import com.easygo.monitor.view.widget.CommomAlertDialog;
 import com.easygo.monitor.view.widget.EZUIPlayerView;
 import com.easygo.monitor.view.widget.LoadProgressDialog;
+import com.easygo.tv.activity.LiveStreamActivity;
+import com.easygo.tv.message.bean.MsgBean;
 import com.easygo.tv.upload.CopyRecord;
 import com.videogo.exception.BaseException;
 import com.videogo.exception.ErrorCode;
@@ -65,6 +69,7 @@ public class EZPlayerFragment extends Fragment implements SurfaceHolder.Callback
     private PlayPresenter mPlayPresenter;
 
     private TextView mNameTextView;
+    private int mTextColor = Color.WHITE;
     private LinearLayout mRecordLayout;
     private TextView mRecordTimeTextView;
 
@@ -99,6 +104,18 @@ public class EZPlayerFragment extends Fragment implements SurfaceHolder.Callback
 
 //    public EZOpenHandler mHandler = new EZOpenHandler(getActivity());
     public EZOpenHandler mHandler = new EZOpenHandler();
+
+    private MsgBean msgBean;//原始消息数据
+    public void setData(MsgBean msgBean) {
+        this.msgBean = msgBean;
+    }
+
+    public void highlight() {
+        this.mTextColor = Color.BLACK;
+        if(mNameTextView != null) {
+            mNameTextView.setTextColor(mTextColor);
+        }
+    }
 
     private class EZOpenHandler extends Handler {
         WeakReference<Activity> mActivity;
@@ -176,6 +193,7 @@ public class EZPlayerFragment extends Fragment implements SurfaceHolder.Callback
         mInitVideoLevel = bundle.getInt(EZOpenConstant.EXTRA_INIT_QUALITY);
 
         //设置名字
+        mNameTextView.setTextColor(mTextColor);
         mNameTextView.setText(mCameraName);
 
         mEZPlayer = EZPlayer.createPlayer(mDeviceSerial, mCameraNo);
@@ -253,10 +271,24 @@ public class EZPlayerFragment extends Fragment implements SurfaceHolder.Callback
             }, 2000);
         }
     }
+
+    private int playFailRetryCount = 0;
+    public static final String KEY_MSG_BEAN = "key_msg_bean";
+    public static final String KEY_DEVICE_SERIAL = "key_device_serial";
+    public static final String KEY_NEED_START_RECORD_AFTER_PLAY = "key_need_start_record_after_play";
     /**
      * 处理播放失败的情况
      */
     private void handlePlayFail(BaseException e) {
+        if(playFailRetryCount == 3) {
+            Message msg = Message.obtain();
+            Bundle data = new Bundle();
+            data.putSerializable(KEY_MSG_BEAN, msgBean);
+            data.putBoolean(KEY_NEED_START_RECORD_AFTER_PLAY, mNeedStartRecordAfterPlay);
+            msg.setData(data);
+            ((LiveStreamActivity) getActivity()).mHandler.sendMessage(msg);
+            return;
+        }
         if (mStatus != STATUS_STOP) {
             mStatus = STATUS_STOP;
             mEZUIPlayerView.dismissomLoading();
@@ -265,6 +297,7 @@ public class EZPlayerFragment extends Fragment implements SurfaceHolder.Callback
             showToast("重试中...");
             startRealPlay();
 //            updateRealPlayFailUI(e.getErrorCode());
+            playFailRetryCount++;
         }
     }
 
@@ -451,31 +484,33 @@ public class EZPlayerFragment extends Fragment implements SurfaceHolder.Callback
         }
         //检测网络
         if (!EZOpenUtils.isNetworkAvailable(this.getContext())) {
+            showToast("请检查网络连接...");
             return;
         }
         //设备信息为空
-//        if (mPlayPresenter.getOpenDeviceInfo() == null || mPlayPresenter.getOpenCameraInfo() == null) {
-//            return;
-//        }
-//        if (mPlayPresenter.getOpenDeviceInfo().getIsEncrypt() == 0) {
+        if (mPlayPresenter.getOpenDeviceInfo() == null || mPlayPresenter.getOpenCameraInfo() == null) {
+            return;
+        }
+        if (mPlayPresenter.getOpenDeviceInfo().getIsEncrypt() == 0) {
             realStartPlay(null);
-//        } else {
-//            String verifyCode = mPlayPresenter.getDeviceEncrypt();
-//            if (!TextUtils.isEmpty(verifyCode)) {
-//                realStartPlay(verifyCode);
-//            } else {
-//                CommomAlertDialog.VerifyCodeInputDialog(getActivity(), new CommomAlertDialog.VerifyCodeInputListener() {
-//                    @Override
-//                    public void onInputVerifyCode(String verifyCode) {
-//                        if (!TextUtils.isEmpty(verifyCode)) {
-//                            mVerifyCode = verifyCode;
-//                            mPlayPresenter.setDeviceEncrypt(mDeviceSerial, mVerifyCode);
-//                            realStartPlay(mVerifyCode);
-//                        }
-//                    }
-//                }).show();
-//            }
-//        }
+        } else {
+            String verifyCode = mPlayPresenter.getDeviceEncrypt();
+            if (!TextUtils.isEmpty(verifyCode)) {
+                realStartPlay(verifyCode);
+            } else {
+                CommomAlertDialog.VerifyCodeInputDialog(getActivity(), new CommomAlertDialog.VerifyCodeInputListener() {
+                    @Override
+                    public void onInputVerifyCode(String verifyCode) {
+                        if (!TextUtils.isEmpty(verifyCode)) {
+                            mVerifyCode = verifyCode;
+                            mPlayPresenter.setDeviceEncrypt(mDeviceSerial, mVerifyCode);
+                            realStartPlay(mVerifyCode);
+                        }
+                    }
+                }).show();
+                showToast("设备密码...");
+            }
+        }
     }
 
     /**

@@ -1,8 +1,6 @@
 package com.easygo.tv.activity;
 
 import android.content.Intent;
-import android.os.Handler;
-import android.os.Message;
 import android.util.Log;
 
 import com.easygo.monitor.R;
@@ -92,16 +90,6 @@ public class LiveStreamWelcome extends LoginActivity implements DeviceView, Logi
         showToast(msg);
 
         mHandler.sendEmptyMessageDelayed(MSG_LOGIN_FAILED, 1000);
-    }
-
-    @Override
-    public void serialsSuccess() {
-
-    }
-
-    @Override
-    public void serialsfailed() {
-
     }
 
 }

@@ -6,7 +6,7 @@ public class ShopMap {
 
     public static HashMap<Integer, String> sShop = new HashMap<>();
     public static String[] sName;
-
+    public static HashMap<String, String[]> sCamera;
 
     /**
      * 没有的门店
@@ -56,7 +56,7 @@ public class ShopMap {
 
         sShop.put(449, "C16407971");//289数字半岛店1    加密
         sShop.put(419, "203893578");//时代地产中心17楼店
-        sShop.put(408, "C16408236");//移动全球通大厦店2
+        sShop.put(408, "C16408236");//移动全球通大厦店1
         sShop.put(361, "C16407967");//星航华府
 
         sShop.put(343, "C16407792");//白云机场店1
@@ -65,47 +65,27 @@ public class ShopMap {
         sShop.put(392, "C16408383");//海逸锦绣蓝湾店2
 
         sShop.put(360, "C33369758");//麒邻公寓2
-        sShop.put(407, "C16408133");//美的御海东郡店
-        sShop.put(341, "C16958301");//怡翠馨园
+        sShop.put(407, "C16408133");//美的御海东郡店2
+        sShop.put(341, "C16958301");//怡翠馨园1
         sShop.put(272, "C16408259");//南沙奥园1  不在线
 ////        sShop.put(272, "C16408262");//南沙奥园2  不在线
 
 
+        /**
+         * key为 照到门方向的摄像头序列号，value为 该门店内其他摄像头序列号
+         */
+        sCamera = new HashMap<>();
+        sCamera.put("203995603", new String[]{"182365547"});//中山星汇云锦店
+        sCamera.put("182364305", new String[]{"C16408131"});//广大商业中心店
+        sCamera.put("C16407792", new String[]{"C16408308", "C16407969"});//白云机场
+        sCamera.put("C16407971", new String[]{"203994414"});//289数字半岛
+        sCamera.put("C16407967", new String[]{"C16410791"});//星航华府
+        sCamera.put("C16408095", new String[]{"C16408179"});//阳光酒店
+        sCamera.put("C16408133", new String[]{"C16408223"});//美的御海东郡店
+        sCamera.put("201104852", new String[]{"201104988"});//中欧中心
+        sCamera.put("C16408383", new String[]{"C16407994"});//海逸锦绣蓝湾店
+        sCamera.put("C33369758", new String[]{"C16408228"});//麒邻公寓
+        sCamera.put("C16958301", new String[]{"182364245"});//怡翠馨园
 
-
-
-
-        sName = new String[] {
-                "美的海岸花园海星居",
-                "美的新海岸",
-                "广大商业中心",
-//                "新城花园(华润联合)",
-
-                "美的海岸花园大学生公寓店",
-                "中山星汇云锦",
-                "力迅上筑",
-                "中山坦洲海伦印象",
-
-                "依绿山庄",
-                "怡翠宏璟",
-                "中欧中心",
-                "磨碟沙花苑",
-
-                "南沙海景城",
-                "城市花园(华润联合)",
-                "海伦堡华景新城",
-                "美的高尔夫一店",
-
-                "东山雅筑商务中心",
-//                "美的君兰江山",
-//                "时代廊桥",
-//                "全球通大厦店",
-//                "星河湾半岛",
-//
-//                "白云机场店",
-//                "海逸锦绣蓝湾",
-//                "美的御海东郡",
-//                "怡翠馨",
-        };
     }
 }

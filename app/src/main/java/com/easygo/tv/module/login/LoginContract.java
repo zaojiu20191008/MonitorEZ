@@ -9,19 +9,14 @@ public class LoginContract {
 
     public interface ILoginModel extends BaseContract.IModel {
         void login(RequestListener<HttpResult<TokenResponse>> listener);
-        void getSerials(RequestListener listener);
     }
 
     public interface ILoginPresenter extends BaseContract.IPresenter {
         void login();
-        void getSerials();
     }
 
     public interface ILoginView extends BaseContract.IView {
         void loginSucces(String token);
         void loginFailed(String msg);
-
-        void serialsSuccess();
-        void serialsfailed();
     }
 }

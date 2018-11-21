@@ -29,22 +29,4 @@ public class LoginPresenter extends BasePresenter<LoginModel, LoginContract.ILog
         });
     }
 
-
-    //根据mac地址获取设备序列号
-    @Override
-    public void getSerials() {
-        mModel.getSerials(new RequestListener() {
-            @Override
-            public void onSuccess(Object result) {
-                mView.serialsSuccess();
-            }
-
-            @Override
-            public void onFailed(String message) {
-                mView.serialsfailed();
-            }
-        });
-    }
-
-
 }

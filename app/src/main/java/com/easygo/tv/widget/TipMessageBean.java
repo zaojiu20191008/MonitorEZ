@@ -7,19 +7,21 @@ public class TipMessageBean {
 
     public int type;
     public String deviceSerial;
+    public String shop;
     public int paySuccessCount;
-    public String blackListName;
+    public String nick_name;
 
     public TipMessageBean(){}
 
-    public TipMessageBean(int type, int paySuccessCount, String deviceSerial) {
+    public TipMessageBean(int type, String shop, int paySuccessCount, String deviceSerial) {
         this.type = type;
+        this.shop = shop;
         this.paySuccessCount = paySuccessCount;
         this.deviceSerial = deviceSerial;
     }
-    public TipMessageBean(int type, String blackListName, String deviceSerial) {
+    public TipMessageBean(int type, String nick_name, String deviceSerial) {
         this.type = type;
-        this.blackListName = blackListName;
+        this.nick_name = nick_name;
         this.deviceSerial = deviceSerial;
     }
 }

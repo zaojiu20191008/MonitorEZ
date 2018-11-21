@@ -14,7 +14,6 @@ import android.os.Message;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.app.FragmentTransaction;
-import android.support.v7.app.AppCompatActivity;
 import android.text.TextUtils;
 import android.util.DisplayMetrics;
 import android.util.Log;
@@ -33,10 +32,14 @@ import com.easygo.monitor.R;
 import com.easygo.monitor.common.EZOpenConstant;
 import com.easygo.monitor.main.EZOpenApplication;
 import com.easygo.monitor.model.EZOpenCameraInfo;
+import com.easygo.monitor.presenter.DevicePresenter;
+import com.easygo.monitor.view.DeviceView;
+import com.easygo.monitor.view.avctivity.RootActivity;
 import com.easygo.tv.Constant;
 import com.easygo.tv.fragment.EZPlayerFragment;
 import com.easygo.tv.message.CMQ;
 import com.easygo.tv.message.Msg;
+import com.easygo.tv.message.ShopMap;
 import com.easygo.tv.message.bean.MsgBean;
 import com.easygo.tv.module.Message.MessageContract;
 import com.easygo.tv.module.Message.MessagePresenter;
@@ -54,12 +57,15 @@ import com.videogo.openapi.bean.EZDeviceInfo;
 
 import java.io.File;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import io.realm.OrderedRealmCollection;
 
 
-public class LiveStreamActivity extends AppCompatActivity implements MessageContract.IMessageView, LoginContract.ILoginView {
+public class LiveStreamActivity extends RootActivity implements MessageContract.IMessageView, LoginContract.ILoginView, DeviceView {
 
     public static final String TAG = "LiveStreamActivity";
 
@@ -82,6 +88,7 @@ public class LiveStreamActivity extends AppCompatActivity implements MessageCont
     public static final int MSG_STOP_PLAY = 0x0000;
     public static final int MSG_HIDE_FOCUS_FRAME = 0x0001;
     public static final int MSG_GET_ALARM_INFO = 0x0002;
+    public static final int MSG_REPLAY = 0x0003;
 
     public Handler mHandler = new Handler() {
         @Override
@@ -101,7 +108,12 @@ public class LiveStreamActivity extends AppCompatActivity implements MessageCont
                     if(mPlayingCount != 0)
                         mMessagePresenter.getMessage();
                     break;
-
+                case MSG_REPLAY:
+                    Bundle data = msg.getData();
+                    MsgBean msgBean = (MsgBean) data.getSerializable(EZPlayerFragment.KEY_MSG_BEAN);
+                    boolean needRecord = data.getBoolean(EZPlayerFragment.KEY_NEED_START_RECORD_AFTER_PLAY);
+                    startPlay(msgBean, needRecord);
+                    break;
                     default:
                         break;
             }
@@ -111,6 +123,7 @@ public class LiveStreamActivity extends AppCompatActivity implements MessageCont
 
     private MessagePresenter mMessagePresenter;
     private LoginPresenter mLoginPresenter;
+    private DevicePresenter mDevicePresenter;
     private AlarmManagerUtils getTokenAlarmMgrUtils;
 
     @Override
@@ -195,8 +208,16 @@ public class LiveStreamActivity extends AppCompatActivity implements MessageCont
 
         mLoginPresenter.detach();
         unregisterReceiver(receiver);
+        unregisterReceiver(getTokenReceiver);
 
         mHandler.removeCallbacksAndMessages(null);
+
+        if (commandDialog().isShowing()) {
+            commandDialog().dismiss();
+        }
+        if (tipMessageDialog().isShowing()) {
+            tipMessageDialog().dismiss();
+        }
 
     }
 
@@ -207,6 +228,10 @@ public class LiveStreamActivity extends AppCompatActivity implements MessageCont
     public void loginSucces(String token) {
         Log.i(TAG, "loginSucces: token -- " + token);
         EZOpenSDK.setAccessToken(token);
+
+        if(mDevicePresenter == null)
+            mDevicePresenter = new DevicePresenter(this);
+        mDevicePresenter.loadDeviceList();
     }
 
     @Override
@@ -221,12 +246,17 @@ public class LiveStreamActivity extends AppCompatActivity implements MessageCont
     }
 
     @Override
-    public void serialsSuccess() {
+    public void loadFinish() {
 
     }
 
     @Override
-    public void serialsfailed() {
+    public void loadFinish(List<EZDeviceInfo> list) {
+        data = mDevicePresenter.getEZOpenCameraInfoList();
+    }
+
+    @Override
+    public void refreshFinish() {
 
     }
 
@@ -354,7 +384,16 @@ public class LiveStreamActivity extends AppCompatActivity implements MessageCont
                                     msgBean.interrupt = true;
                                     break;
                                 }
-                                msgBean.shop_name = ezOpenCameraInfo.getCameraName();
+//                                msgBean.shop_name = ezOpenCameraInfo.getCameraName();
+                                String shopName = ezOpenCameraInfo.getCameraName();
+                                String lastChar = shopName.substring(shopName.length() - 1);
+                                Pattern pattern = Pattern.compile("[0-9]*");
+                                Matcher isNum = pattern.matcher(lastChar);
+                                if(isNum.matches()){
+                                    msgBean.shop_name = shopName.substring(0, shopName.length()-1);
+                                } else {
+                                    msgBean.shop_name = shopName;
+                                }
                                 Log.i(TAG, "onParseBefore: shop_name --> " + msgBean.shop_name);
                                 break;
                             }
@@ -405,13 +444,14 @@ public class LiveStreamActivity extends AppCompatActivity implements MessageCont
                             //取消延迟 停止播放消息
                             mHandler.removeMessages(MSG_STOP_PLAY, msgBean.device_serial);
                         }
-                        boolean needRecord = false;
-                        if(!TextUtils.isEmpty(msgBean.black_list_name)) {
-                            if(Msg.isNeedRecord()) {//晚上10点到早上9点 需要录制
-                                needRecord = true;
-                            }
-                        }
-                        startPlay(msgBean, needRecord);
+//                        boolean needRecord = false;
+//                        if(!TextUtils.isEmpty(msgBean.nick_name)) {
+//                            if(Msg.isNeedRecord()) {//晚上10点到早上9点 需要录制
+//                                needRecord = true;
+//                            }
+//                        }
+//                        startPlay(msgBean, needRecord);
+                        startPlay(msgBean, false);
 
                     }
                 });
@@ -436,6 +476,20 @@ public class LiveStreamActivity extends AppCompatActivity implements MessageCont
                     @Override
                     public void run() {
                         showTip(msgBean);
+                    }
+                });
+            }
+
+            @Override
+            public void onDubious(final MsgBean msgBean) {
+                runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        boolean needRecord = false;
+                        if(Msg.isNeedRecord()) {//晚上10点到早上9点 需要录制
+                            needRecord = true;
+                        }
+                        startPlay(msgBean, needRecord);
                     }
                 });
             }
@@ -541,20 +595,28 @@ public class LiveStreamActivity extends AppCompatActivity implements MessageCont
             return;
         }
 
-        if(mPlaying.contains(deviceSerial)) {
+        boolean isDubious = Msg.isDubious(msgBean);
+        if(isDubious) {
+            //可疑人员
+            showTip(msgBean);
+        }
+
+        EZPlayerFragment fragment = (EZPlayerFragment) getSupportFragmentManager().findFragmentByTag(deviceSerial);
+
+        if(fragment != null) {
             Log.i(TAG, "add: 已存在 " + deviceSerial);
 
             if(needRecord) {
                 startRecord(msgBean);
             }
 
+            if(isDubious) {
+                fragment.highlight();
+            }
+
             return;
         }
 
-        if(!TextUtils.isEmpty(msgBean.black_list_name)) {
-            //可疑人员
-            showTip(msgBean);
-        }
 
         Log.i(TAG, "startPlay: 添加 " + deviceSerial);
 
@@ -577,6 +639,10 @@ public class LiveStreamActivity extends AppCompatActivity implements MessageCont
         bundle.putBoolean(EZOpenConstant.EXTRA_START_RECORD_AFTER_PLAY, needRecord);
         bundle.putInt(EZOpenConstant.EXTRA_INIT_QUALITY, quality);
         final EZPlayerFragment ezPlayerFragment = createFragment(bundle);
+        ezPlayerFragment.setData(msgBean);
+        if(isDubious) {
+            ezPlayerFragment.highlight();
+        }
 
         if(needRecord) {
             String tvRecordFilePath = Msg.getTVRecordFilePath(msgBean);
@@ -1265,23 +1331,40 @@ public class LiveStreamActivity extends AppCompatActivity implements MessageCont
             }
 
             String deviceSerial = mPlaying.get(i);
+
+            //找到该门店内所有摄像头 存入needCheck中
+            ArrayList<String> needCheck = new ArrayList<>(5);
+            needCheck.add(deviceSerial);
+            if (ShopMap.sCamera.containsKey(deviceSerial)) {
+                String[] cameras = ShopMap.sCamera.get(deviceSerial);
+                Collections.addAll(needCheck, cameras);
+            }
+            int checkCount = needCheck.size();
+
             boolean needStopPlay = true;
             Log.i(TAG, "messageSuccess: 判断是否侦测到移动 --> " + fragment.getCameraName());
             int size = list.size();
             for (int j = 0; j < size; j++) {
                 EZAlarmInfo ezAlarmInfo = list.get(j);
                 Log.i(TAG, "messageSuccess: 告警设备名 --> " + ezAlarmInfo.getDeviceName());
-                if(deviceSerial.equals(ezAlarmInfo.getDeviceSerial())) {
-                    if (ezAlarmInfo.getAlarmType() != EZOpenConstant.AlarmType.UNKNOWN.getId()) {
-                        //监测到报警信息
-                        needStopPlay = false;
 
-                        Log.i(TAG, "messageSuccess: 侦测到移动 " + ezAlarmInfo.getDeviceName()
-                                + " -- " + ezAlarmInfo.getAlarmType());
-                    } else {
-                        Log.i(TAG, "messageSuccess: 不知名的告警信息 ");
+                for (int k = 0; k < checkCount; k++) {
+                    String serial = needCheck.get(k);
+                    if(serial.equals(ezAlarmInfo.getDeviceSerial())) {
+                        if (ezAlarmInfo.getAlarmType() != EZOpenConstant.AlarmType.UNKNOWN.getId()) {
+                            //监测到报警信息
+                            needStopPlay = false;
+
+                            Log.i(TAG, "messageSuccess: 侦测到移动 " + ezAlarmInfo.getDeviceName()
+                                    + " -- " + ezAlarmInfo.getAlarmType());
+                            break;
+                        } else {
+                            Log.i(TAG, "messageSuccess: 不知名的告警信息 ");
+                        }
                     }
                 }
+
+
             }
             if(needStopPlay) {
                 Log.i(TAG, "messageSuccess: 移除播放 - " + fragment.getCameraName());
@@ -1297,7 +1380,10 @@ public class LiveStreamActivity extends AppCompatActivity implements MessageCont
 
     @Override
     public void onError() {
-
+        Toast.makeText(this, "重新获取移动侦测消息中...", Toast.LENGTH_SHORT).show();
+        if(mPlayingCount != 0) {
+            mHandler.sendEmptyMessageDelayed(MSG_GET_ALARM_INFO, 1000);
+        }
     }
 
     private TipMessageDialog mTipMessageDialog;
@@ -1323,12 +1409,13 @@ public class LiveStreamActivity extends AppCompatActivity implements MessageCont
         int type = 0;
         TipMessageBean tipMessageBean = new TipMessageBean();
         tipMessageBean.deviceSerial = msgBean.device_serial;
-        if(Msg.ACTION_USER_START_PLAY.equals(msgBean.action)) {
+        if(Msg.ACTION_DUBIOUS.equals(msgBean.action)) {
             //可疑人员
             tipMessageBean.type = TipMessageBean.TYPE_BLACK_LIST;
-            tipMessageBean.blackListName = msgBean.black_list_name;
+            tipMessageBean.nick_name = msgBean.nick_name;
         } else {
             tipMessageBean.type = TipMessageBean.TYPE_PAY_SUCCESS;
+            tipMessageBean.shop = msgBean.shop_name;
             tipMessageBean.paySuccessCount = msgBean.pay_success_count;
         }
 

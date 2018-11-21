@@ -7,7 +7,6 @@ import com.google.gson.Gson;
 import com.qcloud.cmq.*;
 
 import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
@@ -149,10 +148,10 @@ public class CMQ {
             Account account = new Account(endpoint, secretId, secretKey);
 
             //获得队列实例
-//            System.out.println("--------------- queue[android-test] ---------------");
-//            Queue queue = account.getQueue("android-test");
-            System.out.println("--------------- queue[android-monitor] ---------------");
-            Queue queue = account.getQueue("android-monitor");
+            System.out.println("--------------- queue[android-test] ---------------");
+            Queue queue = account.getQueue("android-test");
+//            System.out.println("--------------- queue[android-monitor] ---------------");
+//            Queue queue = account.getQueue("android-monitor");
 
             //设置队列属性
             System.out.println("---------------set queue attributes ...---------------");
@@ -175,6 +174,7 @@ public class CMQ {
 //            test.action = Msg.ACTION_BP_START_RECORD;//盘点开始录制
 //            test.action = Msg.ACTION_BP_STOP_RECORD;//盘点结束录制
 //            test.action = Msg.ACTION_PAY_SUCCESS;//支付成功
+//            test.action = Msg.ACTION_DUBIOUS;//可疑人员进店
 //            test.action = Msg.ACTION_TEST;//测试
 //            test.width = 640;//测试 宽度
 //            test.height = 360;//测试 高度
@@ -186,8 +186,9 @@ public class CMQ {
             test.user_id = 111;
             test.shop_id = 433;
             test.shop_name = "力迅上筑";
-            test.black_list_name = "可疑人员2";
+            test.nick_name = "xx小偷";
             test.pay_success_count = 5;
+            test.count_s = 10;
 
             msgBody = new Gson().toJson(test);
             vtMsgBody.add(msgBody);

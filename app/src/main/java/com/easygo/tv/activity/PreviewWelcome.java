@@ -67,14 +67,4 @@ public class PreviewWelcome extends LoginActivity implements DeviceView, LoginCo
         mHandler.sendEmptyMessageDelayed(MSG_LOGIN_FAILED, 1000);
     }
 
-    @Override
-    public void serialsSuccess() {
-
-    }
-
-    @Override
-    public void serialsfailed() {
-
-    }
-
 }

@@ -47,15 +47,6 @@ public class LoginActivity extends RootActivity implements LoginContract.ILoginV
 
     }
 
-    @Override
-    public void serialsSuccess() {
-
-    }
-
-    @Override
-    public void serialsfailed() {
-
-    }
 
     protected final int MSG_LOGIN_FAILED = 1;
     public Handler mHandler = new Handler(){

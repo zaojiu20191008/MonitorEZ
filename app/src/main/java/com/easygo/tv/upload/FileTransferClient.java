@@ -23,9 +23,10 @@ public class FileTransferClient implements Runnable {
 
     public static final String TAG = "FileTransferClient";
 
-//    private static final String SERVER_IP = "127.0.0.1"; // 服务端IP
-    private static final String SERVER_IP = BuildConfig.COPY_RECORD_SERVER_IP; // 服务端IP
-//    private static final String SERVER_IP = "192.168.31.195"; // 服务端IP  （TV）
+//    private String SERVER_IP = "127.0.0.1"; // 服务端IP
+    private String SERVER_IP = BuildConfig.COPY_RECORD_SERVER_IP; // 服务端IP
+    private final String SERVER_IP_SECOND = "192.168.31.116"; // 第二台主机 服务端IP
+//    private String SERVER_IP = "192.168.31.195"; // 服务端IP  （TV）
     private static final int SERVER_PORT = 6657; // 服务端端口
 
     private Socket client;
@@ -58,6 +59,13 @@ public class FileTransferClient implements Runnable {
         this.directory = directory;
         this.filePath = filePath;
         this.listener = listener;
+    }
+
+    public FileTransferClient(String directory, String filePath, TransferListener listener, boolean copyToSecond) {
+        this(directory, filePath, listener);
+        if(copyToSecond) {
+            SERVER_IP = SERVER_IP_SECOND;
+        }
     }
 
 
@@ -140,10 +148,10 @@ public class FileTransferClient implements Runnable {
                 }
 
                 //上传完成 删除文件
-                File deleteFile = new File(filePath);
-                if(deleteFile.exists()) {
-                    deleteFile.delete();
-                }
+//                File deleteFile = new File(filePath);
+//                if(deleteFile.exists()) {
+//                    deleteFile.delete();
+//                }
             }
 
         } catch (Exception ex) {

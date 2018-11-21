@@ -1,6 +1,8 @@
 package com.easygo.tv.message.bean;
 
-public class MsgBean {
+import java.io.Serializable;
+
+public class MsgBean implements Serializable {
 
     public String action;
     public int user_id;
@@ -8,7 +10,7 @@ public class MsgBean {
     public String shop_name;
     public String device_serial;
 
-    public String black_list_name;
+    public String nick_name;
     public int pay_success_count;
 
 
