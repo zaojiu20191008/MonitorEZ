@@ -112,6 +112,7 @@ public class LiveStreamActivity extends RootActivity implements MessageContract.
                     Bundle data = msg.getData();
                     MsgBean msgBean = (MsgBean) data.getSerializable(EZPlayerFragment.KEY_MSG_BEAN);
                     boolean needRecord = data.getBoolean(EZPlayerFragment.KEY_NEED_START_RECORD_AFTER_PLAY);
+                    stopPlay(msgBean.device_serial);
                     startPlay(msgBean, needRecord);
                     break;
                     default:
@@ -725,14 +726,12 @@ public class LiveStreamActivity extends RootActivity implements MessageContract.
 
         EZPlayerFragment fragment = (EZPlayerFragment) getSupportFragmentManager().findFragmentByTag(deviceSerial);
 
-        if(fragment == null) {
-            Log.i(TAG, "remove: 找不到fragment");
-            return;
-        }
+        if(fragment != null) {
+            fragment.release();
+            FragmentTransaction transaction = getSupportFragmentManager().beginTransaction();
+            transaction.remove(fragment).commit();
 
-        FragmentTransaction transaction = getSupportFragmentManager().beginTransaction();
-        fragment.release();
-        transaction.remove(fragment).commit();
+        }
 
         int index = -1;
 

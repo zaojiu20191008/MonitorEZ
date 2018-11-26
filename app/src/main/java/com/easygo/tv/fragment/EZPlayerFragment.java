@@ -280,7 +280,7 @@ public class EZPlayerFragment extends Fragment implements SurfaceHolder.Callback
      * 处理播放失败的情况
      */
     private void handlePlayFail(BaseException e) {
-        if(playFailRetryCount == 3) {
+        if(playFailRetryCount == 2) {
             Message msg = Message.obtain();
             Bundle data = new Bundle();
             data.putSerializable(KEY_MSG_BEAN, msgBean);

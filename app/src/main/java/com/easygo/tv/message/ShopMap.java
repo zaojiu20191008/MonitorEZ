@@ -12,7 +12,6 @@ public class ShopMap {
      * 没有的门店
      * 悦万城
      * 咖啡厅二楼技术部
-     * 时代地产八楼健身房   不确定
      * 三元里洪泰大厦19楼冰箱
      * 广州国际媒体港
      * 办公室门口
@@ -71,21 +70,40 @@ public class ShopMap {
 ////        sShop.put(272, "C16408262");//南沙奥园2  不在线
 
 
+        sShop.put(21, "203995631");//金碧新城
+        sShop.put(23, "C33369749");//中华广场店
+        sShop.put(25, "C16408179");//奥园冠军城
+        sShop.put(28, "C16958286");//花样年华
+        sShop.put(29, "C16408249");//温馨里
+        sShop.put(30, "C33370094");//奥园金业
+        sShop.put(32, "C16408098");//凯旋新世界
+        sShop.put(37, "C16408390");//黄埔科学城（创意大厦）
+        sShop.put(274, "C33370130");//喜盈雅境
+        sShop.put(277, "182365469");//美的富景花园
+
+        sShop.put(450, "C33369780");//国际媒体港
+        sShop.put(366, "182365516");//悦万城广场
+        sShop.put(58, "C33370096");//番禺漪涟半岛
+        sShop.put(484, "C33369746");//力讯城筑
+
+
+
+
         /**
          * key为 照到门方向的摄像头序列号，value为 该门店内其他摄像头序列号
          */
         sCamera = new HashMap<>();
         sCamera.put("203995603", new String[]{"182365547"});//中山星汇云锦店
-        sCamera.put("182364305", new String[]{"C16408131"});//广大商业中心店
+        sCamera.put("182364305", new String[]{"C16408131"});//广大商业中心店  （显示已迁移  实际还是两个， 第二个不在线）
         sCamera.put("C16407792", new String[]{"C16408308", "C16407969"});//白云机场
         sCamera.put("C16407971", new String[]{"203994414"});//289数字半岛
         sCamera.put("C16407967", new String[]{"C16410791"});//星航华府
-        sCamera.put("C16408095", new String[]{"C16408179"});//阳光酒店
-        sCamera.put("C16408133", new String[]{"C16408223"});//美的御海东郡店
-        sCamera.put("201104852", new String[]{"201104988"});//中欧中心
+//        sCamera.put("C16408095", new String[]{"C16408179"});//阳光酒店    （已迁移 奥园冠军城）
+//        sCamera.put("C16408133", new String[]{"C16408223"});//美的御海东郡店      （已迁移 未指定）
+//        sCamera.put("201104852", new String[]{"201104988"});//中欧中心   （已迁移）
         sCamera.put("C16408383", new String[]{"C16407994"});//海逸锦绣蓝湾店
         sCamera.put("C33369758", new String[]{"C16408228"});//麒邻公寓
-        sCamera.put("C16958301", new String[]{"182364245"});//怡翠馨园
+        sCamera.put("C16958301", new String[]{"182364245"});//怡翠馨园      （显示已迁移  实际还是两个）
 
     }
 }

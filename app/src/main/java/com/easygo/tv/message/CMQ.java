@@ -148,10 +148,10 @@ public class CMQ {
             Account account = new Account(endpoint, secretId, secretKey);
 
             //获得队列实例
-            System.out.println("--------------- queue[android-test] ---------------");
-            Queue queue = account.getQueue("android-test");
-//            System.out.println("--------------- queue[android-monitor] ---------------");
-//            Queue queue = account.getQueue("android-monitor");
+//            System.out.println("--------------- queue[android-test] ---------------");
+//            Queue queue = account.getQueue("android-test");
+            System.out.println("--------------- queue[android-monitor] ---------------");
+            Queue queue = account.getQueue("android-monitor");
 
             //设置队列属性
             System.out.println("---------------set queue attributes ...---------------");
@@ -184,7 +184,7 @@ public class CMQ {
 //            test.height = 1080;//测试 高度
             test.video_level = 1;
             test.user_id = 111;
-            test.shop_id = 433;
+            test.shop_id = 413;
             test.shop_name = "力迅上筑";
             test.nick_name = "xx小偷";
             test.pay_success_count = 5;
