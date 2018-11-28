@@ -86,6 +86,12 @@ public class ShopMap {
         sShop.put(58, "C33370096");//番禺漪涟半岛
         sShop.put(484, "C33369746");//力讯城筑
 
+        sShop.put(283, "C33370127");//星河湾6期
+        sShop.put(282, "C33370061");//星河湾7期
+        sShop.put(288, "C33370116");//佛山山语湖21座
+        sShop.put(289, "C16407994");//佛山山语湖7座店
+        sShop.put(67, "C35167135");//佛山山语湖别墅
+
 
 
 
@@ -101,7 +107,7 @@ public class ShopMap {
 //        sCamera.put("C16408095", new String[]{"C16408179"});//阳光酒店    （已迁移 奥园冠军城）
 //        sCamera.put("C16408133", new String[]{"C16408223"});//美的御海东郡店      （已迁移 未指定）
 //        sCamera.put("201104852", new String[]{"201104988"});//中欧中心   （已迁移）
-        sCamera.put("C16408383", new String[]{"C16407994"});//海逸锦绣蓝湾店
+//        sCamera.put("C16408383", new String[]{"C16407994"});//海逸锦绣蓝湾店   （已迁移）
         sCamera.put("C33369758", new String[]{"C16408228"});//麒邻公寓
         sCamera.put("C16958301", new String[]{"182364245"});//怡翠馨园      （显示已迁移  实际还是两个）
 

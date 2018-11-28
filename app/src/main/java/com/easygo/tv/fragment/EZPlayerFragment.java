@@ -5,7 +5,6 @@ import android.graphics.Color;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
-import android.os.SystemClock;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
 import android.text.TextUtils;
@@ -41,7 +40,9 @@ import com.videogo.openapi.EZPlayer;
 import com.videogo.openapi.OnEZPlayerCallBack;
 
 import java.lang.ref.WeakReference;
+import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import io.realm.RealmList;
@@ -260,6 +261,7 @@ public class EZPlayerFragment extends Fragment implements SurfaceHolder.Callback
 //            mPlayUI.mTalkImg.setEnabled(false);
 //        }
         mHandler.sendEmptyMessage(MSG_REFRESH_PLAY_UI);
+        playFailRetryCount = 0;
 
         //todo test
         if(mNeedStartRecordAfterPlay) {
@@ -281,10 +283,20 @@ public class EZPlayerFragment extends Fragment implements SurfaceHolder.Callback
      */
     private void handlePlayFail(BaseException e) {
         if(playFailRetryCount == 2) {
+            if (mStatus != STATUS_STOP) {
+                mStatus = STATUS_STOP;
+                mEZUIPlayerView.dismissomLoading();
+                stopRealPlay();
+
+                updateRealPlayFailUI(e.getErrorCode());
+
+            }
+
             Message msg = Message.obtain();
             Bundle data = new Bundle();
             data.putSerializable(KEY_MSG_BEAN, msgBean);
             data.putBoolean(KEY_NEED_START_RECORD_AFTER_PLAY, mNeedStartRecordAfterPlay);
+            msg.what = LiveStreamActivity.MSG_REPLAY;
             msg.setData(data);
             ((LiveStreamActivity) getActivity()).mHandler.sendMessage(msg);
             return;
@@ -294,9 +306,9 @@ public class EZPlayerFragment extends Fragment implements SurfaceHolder.Callback
             mEZUIPlayerView.dismissomLoading();
             stopRealPlay();
 
-            showToast("重试中...");
+            updateRealPlayFailUI(e.getErrorCode());
+            showToast(mCameraName + ": 重试中...");
             startRealPlay();
-//            updateRealPlayFailUI(e.getErrorCode());
             playFailRetryCount++;
         }
     }
@@ -307,7 +319,7 @@ public class EZPlayerFragment extends Fragment implements SurfaceHolder.Callback
         // 判断返回的错误码
         switch (errorCode) {
             case ErrorCode.ERROR_TRANSF_ACCESSTOKEN_ERROR:
-                EZOpenUtils.gotoLogin();
+//                EZOpenUtils.gotoLogin();
                 return;
             case ErrorCode.ERROR_CAS_MSG_PU_NO_RESOURCE:
                 txt = getString(R.string.remoteplayback_over_link);
@@ -345,6 +357,10 @@ public class EZPlayerFragment extends Fragment implements SurfaceHolder.Callback
                 txt = getErrorTip(R.string.realplay_play_fail, errorCode);
                 break;
         }
+
+        if(errorTxts == null)
+            errorTxts = new ArrayList<>();
+        errorTxts.add(txt);
 
         if (!TextUtils.isEmpty(txt)) {
             setRealPlayFailUI(txt);
@@ -756,7 +772,7 @@ public class EZPlayerFragment extends Fragment implements SurfaceHolder.Callback
             EZLog.debugLog(TAG, "取消更改清晰度，正在录制视频: "  + mCameraName);
             return;
         }
-        if(isSettingQuality.get()) {
+        if(isSettingQuality.get() || mIsSettingQuality) {
             EZLog.debugLog(TAG, "正在设置清晰度（--> " + mSettingVideoLevel + "): "  + mCameraName);
             return;
         }
@@ -967,5 +983,40 @@ public class EZPlayerFragment extends Fragment implements SurfaceHolder.Callback
 
     public boolean hasAlreadyPlay(long time) {
         return startPlayTime != -1 && System.currentTimeMillis() - startPlayTime >= time;
+    }
+
+
+    private List<String> errorTxts;
+    public String getStateDescribe() {
+        StringBuilder sb = new StringBuilder();
+        String statusContent = "未知状态";
+        switch (mStatus) {
+            case STATUS_INIT:
+                statusContent = "初始化状态";
+                break;
+            case STATUS_PLAY:
+                statusContent = "播放状态";
+                break;
+            case STATUS_START:
+                statusContent = "开始状态";
+                break;
+            case STATUS_STOP:
+                statusContent = "停止状态";
+                break;
+
+        }
+        sb.append(statusContent).append(",");
+        //重试播放次数
+        sb.append(playFailRetryCount).append(",");
+
+        if(errorTxts != null) {
+            int size = errorTxts.size();
+            for (int i = 0; i < size; i++) {
+                sb.append(errorTxts.get(i)).append(",");
+            }
+            sb.deleteCharAt(sb.length()-1);
+        }
+
+        return sb.toString();
     }
 }

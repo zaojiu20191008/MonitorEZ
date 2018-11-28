@@ -8,12 +8,14 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.graphics.Color;
 import android.graphics.Point;
+import android.net.ConnectivityManager;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.app.FragmentTransaction;
+import android.support.v7.app.AlertDialog;
 import android.text.TextUtils;
 import android.util.DisplayMetrics;
 import android.util.Log;
@@ -48,6 +50,7 @@ import com.easygo.tv.module.login.LoginPresenter;
 import com.easygo.tv.mvp.model.LoginModel;
 import com.easygo.tv.upload.CopyRecord;
 import com.easygo.tv.util.AlarmManagerUtils;
+import com.easygo.tv.util.NetUtils;
 import com.easygo.tv.widget.CommandDialog;
 import com.easygo.tv.widget.TipMessageBean;
 import com.easygo.tv.widget.TipMessageDialog;
@@ -110,16 +113,25 @@ public class LiveStreamActivity extends RootActivity implements MessageContract.
                     break;
                 case MSG_REPLAY:
                     Bundle data = msg.getData();
-                    MsgBean msgBean = (MsgBean) data.getSerializable(EZPlayerFragment.KEY_MSG_BEAN);
-                    boolean needRecord = data.getBoolean(EZPlayerFragment.KEY_NEED_START_RECORD_AFTER_PLAY);
+                    final MsgBean msgBean = (MsgBean) data.getSerializable(EZPlayerFragment.KEY_MSG_BEAN);
+                    final boolean needRecord = data.getBoolean(EZPlayerFragment.KEY_NEED_START_RECORD_AFTER_PLAY);
                     stopPlay(msgBean.device_serial);
-                    startPlay(msgBean, needRecord);
+                    postDelayed(new Runnable() {
+                        @Override
+                        public void run() {
+                            startPlay(msgBean, needRecord);
+                        }
+                    }, 1000);
+
                     break;
                     default:
                         break;
             }
         }
     };
+
+    public static boolean test = true;
+
     private CommandDialog mCommandDialog;
 
     private MessagePresenter mMessagePresenter;
@@ -141,6 +153,7 @@ public class LiveStreamActivity extends RootActivity implements MessageContract.
         initScreenSize();
         startCopyTask();
         startGetTokenTask();
+        registerNetworkReceiver();
 
         initPresenter();
     }
@@ -197,6 +210,14 @@ public class LiveStreamActivity extends RootActivity implements MessageContract.
         getTokenAlarmMgrUtils.startIntervalTask();
     }
 
+    public void registerNetworkReceiver() {
+        IntentFilter filter = new IntentFilter();
+        filter.addAction(ConnectivityManager.CONNECTIVITY_ACTION);
+        //注册广播接收
+        registerReceiver(networkReceiver, filter);
+
+    }
+
     public void initPresenter() {
         this.mMessagePresenter = new MessagePresenter(this);
         this.mLoginPresenter = new LoginPresenter();
@@ -210,6 +231,7 @@ public class LiveStreamActivity extends RootActivity implements MessageContract.
         mLoginPresenter.detach();
         unregisterReceiver(receiver);
         unregisterReceiver(getTokenReceiver);
+        unregisterReceiver(networkReceiver);
 
         mHandler.removeCallbacksAndMessages(null);
 
@@ -219,11 +241,13 @@ public class LiveStreamActivity extends RootActivity implements MessageContract.
         if (tipMessageDialog().isShowing()) {
             tipMessageDialog().dismiss();
         }
+        hideTipDialog();
 
     }
 
     public CopyRecordReceiver receiver = new CopyRecordReceiver();
     public GetTokenReceiver getTokenReceiver = new GetTokenReceiver();
+    public NetworkReceiver networkReceiver = new NetworkReceiver();
 
     @Override
     public void loginSucces(String token) {
@@ -335,6 +359,44 @@ public class LiveStreamActivity extends RootActivity implements MessageContract.
 
             //高版本重复设置闹钟达到低版本中setRepeating相同效果
             getTokenAlarmMgrUtils.startIntervalTask();
+        }
+    }
+
+    public Dialog tipDialog;
+    public void showTipDialog(String msg) {
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        builder.setTitle("提示")
+                .setMessage(msg)
+                .setCancelable(true);
+
+        tipDialog = builder.create();
+        tipDialog.show();
+    }
+    public void hideTipDialog() {
+        if (tipDialog != null) {
+            tipDialog.dismiss();
+        }
+    }
+
+    public class NetworkReceiver extends BroadcastReceiver {
+
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            if (ConnectivityManager.CONNECTIVITY_ACTION.equals(intent.getAction())) {
+                boolean netWorkStateError = NetUtils.isNetWorkError(context);
+                // 当网络发生变化，判断当前网络状态，并通过NetEvent回调当前网络状态
+
+                if(netWorkStateError) {
+                    showTipDialog("网络异常，请检查网络连接！");
+                    Toast.makeText(LiveStreamActivity.this,
+                            "网络异常，请检查网络连接！", Toast.LENGTH_LONG).show();
+                } else {
+                    hideTipDialog();
+                    Toast.makeText(LiveStreamActivity.this,
+                            "网络连接正常！", Toast.LENGTH_LONG).show();
+                }
+            }
+
         }
     }
 
@@ -512,26 +574,32 @@ public class LiveStreamActivity extends RootActivity implements MessageContract.
                 runOnUiThread(new Runnable() {
                     @Override
                     public void run() {
-                        String device_serial = msgBean.device_serial;
 
-                        EZPlayerFragment fragment = (EZPlayerFragment) getSupportFragmentManager().findFragmentByTag(device_serial);
-                        if(fragment == null) {
-                            Log.i(TAG, "onTest: 找不到fragment - " + device_serial);
-                            return;
+                        StringBuilder sb = new StringBuilder();
+                        sb.append("播放数量：").append(mPlayingCount).append("\n");
+
+                        int size = mPlaying.size();
+
+                        sb.append("序列号：").append("\n");
+                        for (int i = 0; i < size; i++) {
+
+                            String serial = mPlaying.get(i);
+                            sb.append(serial).append(",");
+                        }
+                        sb.append("\n");
+
+                        sb.append("移动侦测是否开启：").append(isGettingAlarmInfo).append("\n");
+                        sb.append("是否接收消息中：").append(CMQ.getInstance().isRepeatAccept()).append("\n");
+
+                        int fragmentSize = mPlayingFragment.size();
+                        sb.append("fragment数量：").append(fragmentSize).append("\n");
+                        for (int i = 0; i < fragmentSize; i++) {
+                            EZPlayerFragment fragment = mPlayingFragment.get(i);
+                            sb.append(fragment.getCameraName()).append("-").append(fragment.getStateDescribe()).append(",");
                         }
 
-                        int width = msgBean.width;
-                        int height = msgBean.height;
-                        int video_level = msgBean.video_level;
+                        showTipDialog(sb.toString());
 
-                        fragment.changeQuality(video_level);
-
-//                        FrameLayout frameLayout = (FrameLayout) findViewById(R.id.fragment_1);
-//                        GridLayout.LayoutParams lp = (GridLayout.LayoutParams) frameLayout.getLayoutParams();
-//                        lp.width = width;
-//                        lp.height = height;
-//                        frameLayout.setLayoutParams(lp);
-//                        fragment.setSurfaceSize(width, height);
                     }
                 });
 
