@@ -34,6 +34,7 @@ import com.easygo.monitor.view.widget.LoadProgressDialog;
 import com.easygo.tv.activity.LiveStreamActivity;
 import com.easygo.tv.message.bean.MsgBean;
 import com.easygo.tv.upload.CopyRecord;
+import com.ezviz.opensdk.base.error.ErrorInfo;
 import com.videogo.exception.BaseException;
 import com.videogo.exception.ErrorCode;
 import com.videogo.openapi.EZPlayer;
@@ -109,6 +110,9 @@ public class EZPlayerFragment extends Fragment implements SurfaceHolder.Callback
     private MsgBean msgBean;//原始消息数据
     public void setData(MsgBean msgBean) {
         this.msgBean = msgBean;
+    }
+    public MsgBean getData() {
+        return this.msgBean;
     }
 
     public void highlight() {
@@ -205,6 +209,20 @@ public class EZPlayerFragment extends Fragment implements SurfaceHolder.Callback
             @Override
             public void onPlaySuccess() {
                 EZLog.d(TAG, "onPlaySuccess");
+
+//                if(count <= 1) {
+//                    count++;
+//
+//                    ErrorInfo errorInfo = new ErrorInfo();
+//                    errorInfo.setSulution("解决");
+//                    errorInfo.setDescription("描述");
+//                    errorInfo.setModuleCode("码 - 111");
+//                    errorInfo.setErrorCode(5678);
+//
+//                    handlePlayFail(new BaseException(errorInfo));
+//
+//                    return;
+//                }
                 if (mStatus != STATUS_STOP) {
                     handlePlaySuccess();
                 }
@@ -244,6 +262,8 @@ public class EZPlayerFragment extends Fragment implements SurfaceHolder.Callback
         }
     }
 
+    int count = 0;
+
     /**
      * 处理播放成功的情况
      */
@@ -282,7 +302,7 @@ public class EZPlayerFragment extends Fragment implements SurfaceHolder.Callback
      * 处理播放失败的情况
      */
     private void handlePlayFail(BaseException e) {
-        if(playFailRetryCount == 2) {
+        if(playFailRetryCount == 1) {
             if (mStatus != STATUS_STOP) {
                 mStatus = STATUS_STOP;
                 mEZUIPlayerView.dismissomLoading();
@@ -303,13 +323,13 @@ public class EZPlayerFragment extends Fragment implements SurfaceHolder.Callback
         }
         if (mStatus != STATUS_STOP) {
             mStatus = STATUS_STOP;
+            playFailRetryCount++;
             mEZUIPlayerView.dismissomLoading();
             stopRealPlay();
 
             updateRealPlayFailUI(e.getErrorCode());
             showToast(mCameraName + ": 重试中...");
             startRealPlay();
-            playFailRetryCount++;
         }
     }
 

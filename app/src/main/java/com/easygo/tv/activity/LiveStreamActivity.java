@@ -121,7 +121,7 @@ public class LiveStreamActivity extends RootActivity implements MessageContract.
                         public void run() {
                             startPlay(msgBean, needRecord);
                         }
-                    }, 1000);
+                    }, 3000);
 
                     break;
                     default:
@@ -1233,6 +1233,8 @@ public class LiveStreamActivity extends RootActivity implements MessageContract.
                             return;
                         }
                         showFullScreenVideo();
+                    } else if (Constant.CMD.REPLAY.equals(cmdText)) {//重载
+                        replay(mPlaying.get(mFocusIndex));
                     }
                 }
             });
@@ -1496,6 +1498,42 @@ public class LiveStreamActivity extends RootActivity implements MessageContract.
         }, 500);
 
         tipMessageDialog.show();
+    }
+
+    public void replay(String deviceSerial) {
+
+        EZPlayerFragment fragment =  (EZPlayerFragment) getSupportFragmentManager().findFragmentByTag(deviceSerial);
+
+        Bundle bundle = null;
+        MsgBean msgBean = null;
+        if(fragment != null) {
+            fragment.release();
+            FragmentTransaction transaction = getSupportFragmentManager().beginTransaction();
+            transaction.remove(fragment).commit();
+            msgBean = fragment.getData();
+            bundle = new Bundle(fragment.getArguments());
+        }
+
+        if(msgBean == null || bundle == null) {
+            Log.i(TAG, "replay: 数据异常 msgBean - " + msgBean + ", bundle - " + bundle);
+            Toast.makeText(this, "数据异常", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        final EZPlayerFragment ezPlayerFragment = createFragment(bundle);
+        ezPlayerFragment.setData(msgBean);
+
+        if(bundle.getBoolean(EZPlayerFragment.KEY_NEED_START_RECORD_AFTER_PLAY, false)) {
+            String tvRecordFilePath = Msg.getTVRecordFilePath(msgBean);
+            Log.i(TAG, "replay: tvRecordFilePath --> " + tvRecordFilePath);
+            ezPlayerFragment.setRecordPath(tvRecordFilePath);
+        }
+
+        Point size = computeSurfaceSize(mPlayingCount);
+        ezPlayerFragment.setSize(size.x, 0);
+
+        FragmentTransaction transaction = getSupportFragmentManager().beginTransaction();
+        transaction.replace(msgBean.shop_id, ezPlayerFragment, deviceSerial).commit();
     }
 
 
